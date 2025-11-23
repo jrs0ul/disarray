@@ -1,0 +1,17 @@
+#pragma once
+
+enum Actions
+{
+    ACTION_UP,
+    ACTION_DOWN,
+    ACTION_LEFT,
+    ACTION_RIGHT,
+    ACTION_OPEN,
+    ACTION_BACK,
+    ACTION_FIRE,
+    ACTION_NEXT_WEAPON,
+    ACTION_MAP,
+    ACTION_INVENTORY
+
+};
+

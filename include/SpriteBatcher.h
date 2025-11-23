@@ -1,0 +1,221 @@
+/*
+ The Disarray 
+ by jrs0ul(jrs0ul ^at^ gmail ^dot^ com) 2025
+ -------------------------------------------
+ Sprite batcher
+ */
+#pragma once
+
+#ifdef _WIN32
+    #ifdef _MSC_VER
+        #include <SDL_opengl.h>
+    #else
+        #include <SDL2/SDL_opengl.h>
+    #endif
+#else
+    #ifdef __APPLE__
+        #include <TargetConditionals.h>
+        #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+            #include <OpenGLES/ES1/gl.h>
+            #include <OpenGLES/ES1/glext.h>
+        #else
+              #include <SDL/SDL_opengl.h>
+        #endif
+    #elif __ANDROID__
+            #include <GLES2/gl2.h>
+            #include <GLES2/gl2ext.h>
+    #else
+            #include <SDL2/SDL_opengl.h>
+    #endif
+#endif
+
+
+#include "Image.h"
+#include "Colors.h"
+#include "ShaderProgram.h"
+#include "VulkanTexture.h"
+
+struct Sprite
+{
+    char name[128];
+    int startX;
+    int startY;
+    int width;
+    int height;
+};
+
+
+struct PicData{
+    char name[256];
+    int twidth;
+    int theight;
+    int width;
+    int height;
+    int filter;
+
+    std::vector<Sprite> sprites;
+
+
+    //additional data for faster rendering
+    float htilew;
+    float htileh;
+    int vframes;
+    int hframes;
+    float partX;
+    float partY;
+};
+//-------------------------
+struct SpriteBatchItem{
+    float x;
+    float y;
+    long textureIndex;
+    unsigned int frame;
+    bool useCenter;
+    float scaleX ;
+    float scaleY ;
+    float rotationAngle;
+    COLOR upColor[2];
+    COLOR dwColor[2];
+
+    SpriteBatchItem(){
+        x = 0;
+        y = 0;
+        textureIndex = 0;
+        frame = 0;
+        useCenter = false;
+        scaleX = 1.0f;
+        scaleY = 1.0f ;
+        rotationAngle = 0.0f;
+        upColor[0] = COLOR(1.0f, 1.0f, 1.0f, 1.0f);
+        upColor[1] = COLOR(1.0f, 1.0f, 1.0f, 1.0f);
+        dwColor[0] = COLOR(1.0f, 1.0f, 1.0f, 1.0f);
+        dwColor[1] = COLOR(1.0f, 1.0f, 1.0f, 1.0f);
+    }
+};
+//==================================
+
+class SpriteBatcher
+{
+
+    const uint32_t MAX_TEXTURES = 255;
+
+
+    std::vector<VulkanTexture>   vkTextures; // for vulkan
+    std::vector<GLuint>          glTextures; // for opengl
+    std::vector<PicData>         picInfo;
+    std::vector<SpriteBatchItem> batch;
+
+    VkDescriptorSetLayout        vkDescriptorSetLayout;
+    VkDescriptorPool             vkDescriptorPool;
+    std::vector<VkDescriptorSet> vkTextureDescriptorSets;
+
+    bool                         isVulkan;
+
+
+public:
+    SpriteBatcher(){ isVulkan = false; }
+#ifndef __ANDROID__
+    bool initContainer(const char* list,
+                       bool useVulkan = false);
+#else
+    bool initContainer(const char* list,
+                       AAssetManager* assman,
+                       bool useVulkan = false);
+#endif
+
+    //load textures from the xml file list
+#ifndef __ANDROID__
+    bool load(const char* list, bool useVulkan = false,
+              VkDevice* vkDevice = nullptr,
+              VkPhysicalDevice* physical = nullptr,
+              VkCommandPool* vkCommandPool = nullptr,
+              VkQueue* vkGraphicsQueue = nullptr
+            );
+#else
+    bool load(const char* list, AAssetManager* assman, bool useVulkan = false,
+              VkDevice* vkDevice = nullptr,
+              VkPhysicalDevice* physical = nullptr,
+              VkCommandPool* vkCommandPool = nullptr,
+              VkQueue* vkGraphicsQueue = nullptr
+              );
+#endif
+
+
+    void destroy(VkDevice* vkDevice = nullptr);
+
+    void bindTexture(unsigned long index,
+                     ShaderProgram* shader,
+                     bool useVulkan = false,
+                     VkCommandBuffer* vkCmd = nullptr);
+
+    //adds sprite to batch
+    void draw( long textureIndex,
+                float x, float y,
+                unsigned int frame = 0,
+                bool useCenter = false,
+                float scaleX = 1.0f, float scaleY = 1.0f,
+                float rotationAngle = 0.0f,
+                COLOR upColor = COLOR(1.0f, 1.0f, 1.0f, 1.0f),
+                COLOR dwColor = COLOR(1.0f, 1.0f, 1.0f, 1.0f),
+                bool flipColors = false
+               );
+    //draws all sprites in batch
+    void drawBatch(ShaderProgram * justColor,
+                   ShaderProgram * uvColor,
+                   int method = 0,
+                   bool useVulkan = false,
+                   VkCommandBuffer* vkCmd = nullptr);
+
+    GLuint        getGLName(unsigned long index);
+    unsigned      getTextureCount(){return isVulkan ? vkTextures.size() : glTextures.size();}
+    PicData*      getInfo(unsigned long index);
+    unsigned long count(){return picInfo.size();}
+    int           findByName(const char* picname, bool debug = false);
+    //to make textures from images loaded in defferent threads
+    void makeTexture(Image& img,
+                     const char * name,
+                     unsigned long index,
+                     int twidth, int theight, int filter = 0);
+#ifndef __ANDROID__
+    bool loadFile(const char* file, unsigned long index,
+                             int twidth, int theight, int filter);
+#else
+    bool loadFile(const char* file, unsigned long index,
+                                 int twidth, int theight, int filter,
+                                 AAssetManager* man);
+#endif
+
+   
+    //loads images using special array loaded from file
+    bool loadFile(unsigned long index, const char * BasePath);
+    //attach already created texture
+    void attachTexture(GLuint textureID, unsigned long index,
+                       int width, int height,
+                       int twidth, int theight, int filter = 0);
+
+    void attachTexture(VulkanTexture& tex, unsigned long index,
+                       int width, int height,
+                       int twidth, int theight,
+                       VkDevice* device, int filter = 0);
+    void remove(unsigned long index);
+
+    VkDescriptorSetLayout* getVkDSL(){return &vkDescriptorSetLayout;}
+
+private:
+
+    void drawVA(void * vertices, void * uvs, void *colors,
+                unsigned uvsCount, unsigned vertexCount,
+                ShaderProgram* shader,
+                bool useVulkan,
+                VkCommandBuffer* vkCmd = nullptr);
+    void resizeContainer(unsigned long index,
+                         int twidth, int theight, int filter,
+                         const char * name,
+                         bool createTextures = true,
+                         GLuint texname = 0);
+
+    void createVulkanDescriptorSet(VkDevice* vkDevice, uint32_t index);
+
+};
+
+

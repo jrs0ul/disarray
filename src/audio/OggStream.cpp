@@ -1,0 +1,237 @@
+#include <audio/OggStream.h>
+
+#ifdef __ANDROID__
+
+#include <AndroidFile.h>
+
+
+bool OggStream::open(const char* path, AAssetManager* assman)
+#else
+bool OggStream::open(const char* path)
+#endif
+{
+    int result;
+
+#ifdef __ANDROID__
+    if(!(oggFile = android_fopen(assman, path, "rb")))
+#else
+    if(!(oggFile = fopen(path, "rb")))
+#endif
+    {
+       printf("Could not open %s\n", path);
+       return false;
+    }
+
+    if((result = ov_open(oggFile, &oggStream, NULL, 0)) < 0){
+        fclose(oggFile);
+        printf("Could not open %s\n", path);
+    }
+
+    vorbisInfo = ov_info(&oggStream, -1);
+
+
+    if(vorbisInfo->channels == 1)
+        format = AL_FORMAT_MONO16;
+    else
+        format = AL_FORMAT_STEREO16;
+
+
+    alGenBuffers(BUFFERCOUNT, buffers);
+
+    alGenSources(1, &source);
+
+
+    char pDecodeBuffer[BUFFER_SIZE];
+
+    for (int i = 0; i < BUFFERCOUNT; i++){
+        long bytes = 0;
+        bytes = stream(pDecodeBuffer);
+        if (bytes){
+            alBufferData(buffers[i], format, pDecodeBuffer, bytes, vorbisInfo->rate);
+            alSourceQueueBuffers(source, 1, &buffers[i]);
+        }
+    }
+
+    alSource3f(source, AL_POSITION,        0.0, 0.0, 0.0);
+    alSource3f(source, AL_VELOCITY,        0.0, 0.0, 0.0);
+    alSource3f(source, AL_DIRECTION,       0.0, 0.0, 0.0);
+    alSourcef (source, AL_ROLLOFF_FACTOR,  0.0          );
+    alSourcei (source, AL_SOURCE_RELATIVE, AL_TRUE      );
+    alSourcef(source, AL_GAIN, volume);
+
+    return true;
+}
+//---------------------------------------
+void OggStream::setVolume(float vol)
+{
+    volume = vol;
+    alSourcef(source, AL_GAIN, vol);
+}
+
+
+//----------------------------------------
+void OggStream::release()
+{
+
+    alSourceStop(source);
+
+    empty();
+
+    alDeleteSources(1, &source);
+    check("releasing");
+    alDeleteBuffers(BUFFERCOUNT, buffers);
+    check("releasing");
+    ov_clear(&oggStream);
+    check("releasing");
+
+}
+
+
+//------------------------------------
+
+
+bool OggStream::playback(){
+
+    int iState = 0;
+
+    alGetSourcei(source, AL_SOURCE_STATE, &iState);
+
+    if (iState != AL_PLAYING)
+    {
+        int iQueuedBuffers = 0;
+        alGetSourcei(source, AL_BUFFERS_QUEUED, &iQueuedBuffers);
+        printf("Buffers queued: %d\n", iQueuedBuffers);
+
+        if (iQueuedBuffers)
+        {
+            alSourcePlay(source);
+        }
+    }
+
+    return true;
+}
+//------------------------------
+void OggStream::stop()
+{
+    int iState = 0;
+
+    alGetSourcei(source, AL_SOURCE_STATE, &iState);
+
+    if (iState == AL_PLAYING)
+    {
+        alSourceStop(source);
+    }
+}
+
+//------------------------------
+
+bool OggStream::playing()
+{
+    ALenum state = 0;
+
+    alGetSourcei(source, AL_SOURCE_STATE, &state);
+
+    return (state == AL_PLAYING);
+}
+
+
+//---------------------------------
+
+bool OggStream::update(){
+
+    int processed = 0;
+    bool active = true;
+
+    alGetSourcei(source, AL_BUFFERS_PROCESSED, &processed);
+
+    while(processed){
+        ALuint buffer;
+
+        alSourceUnqueueBuffers(source, 1, &buffer);
+
+
+        char pcm[BUFFER_SIZE];
+        long siz;
+        siz = stream(pcm);
+
+        if (siz){
+            alBufferData(buffer, format, pcm, siz, vorbisInfo->rate);
+            alSourceQueueBuffers(source, 1, &buffer);
+            //puts("ading extra buffer");
+        }
+
+       // check("updating");
+        processed--;
+    }
+
+    return active;
+}
+
+
+//-------------------------------------------------
+
+long OggStream::stream(char* decbuff){
+
+    int  size = 0;
+    int  section;
+    int  result=1;
+
+
+    while((result) && (size < BUFFER_SIZE)){
+
+        result = ov_read(&oggStream, decbuff + size, BUFFER_SIZE - size, 0, 2, 1, &section);
+
+        if(result > 0)
+            size += result;
+        else
+            if(result < 0){
+                break;
+            }
+
+    }
+    if (result<=0){
+        result = 1;
+        size = 0;
+        ov_pcm_seek(&oggStream, 0);
+        while((result) && (size<BUFFER_SIZE)){
+            result = ov_read(&oggStream, decbuff + size, BUFFER_SIZE - size, 0, 2, 1, &section);
+
+            if(result > 0)
+                size += result;
+            else
+                if(result < 0){
+                    break;
+                }
+        }
+    }
+    return size;
+}
+
+//-------------------------------------
+void OggStream::empty(){
+
+    int queued = 0;
+
+    alGetSourcei(source, AL_BUFFERS_QUEUED, &queued);
+    printf("Buffers queued:%d\n", queued);
+
+    int a = 0;
+    while( queued--){
+        a++;
+        printf("buff %d\n", a);
+
+        ALuint buffer;
+
+        alSourceUnqueueBuffers(source, 1, &buffer);
+        check("emptying");
+    }
+}
+
+//---------------------------------
+void OggStream::check(const char* place){
+        ALenum r=0;
+        r=alGetError();
+        if ( r != AL_NO_ERROR){
+            printf("Error: %x while %s\n",r,place);
+        }
+}
