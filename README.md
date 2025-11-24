@@ -37,8 +37,9 @@ For Android you need to put paths to OpenAL-soft and Ogg/Vorbis libs into your b
         externalNativeBuild {
             cmake {
                 ...
-                arguments '-DOPENAL_DIR="/path/to/libopenal"'
-                          '-DOGG_VORBIS_DIR="/path/to/oggvorbis"'
+                arguments ...
+                          '-DOPENAL_DIR=/path/to/libopenal',
+                          '-DOGG_VORBIS_DIR=/path/to/oggvorbis'
             }
         }
     }
