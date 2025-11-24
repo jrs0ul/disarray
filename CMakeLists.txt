@@ -7,20 +7,16 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
 
-
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 include_directories(disarray PRIVATE "include/")
 
-#if(CMAKE_SYSTEM_NAME STREQUAL "Android")
-    set(OPENAL_DIR $ENV{OPENAL_LIB_PATH})
-    set(OGG_VORBIS_DIR $ENV{OGGVORBIS_LIB_PATH})
+if(CMAKE_SYSTEM_NAME STREQUAL "Android")
     include_directories("${OPENAL_DIR}/include")
     include_directories("${OGG_VORBIS_DIR}/inc")
-
-#endif()
+endif()
 
 add_library(disarray
         src/gui/SelectMenu.cpp
