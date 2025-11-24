@@ -14,40 +14,81 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 include_directories(disarray PRIVATE "include/")
 
+#if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+    set(OPENAL_DIR $ENV{OPENAL_LIB_PATH})
+    set(OGG_VORBIS_DIR $ENV{OGGVORBIS_LIB_PATH})
+    include_directories("${OPENAL_DIR}/include")
+    include_directories("${OGG_VORBIS_DIR}/inc")
+
+#endif()
+
 add_library(disarray
-    src/gui/SelectMenu.cpp
-    src/OSTools.cpp
-    src/Particles2D.cpp
-    src/gui/Text.cpp
-    src/gui/Slider.cpp
-    src/gui/EditBox.cpp
-    src/SysConfig.cpp
-    src/network/Socket.cpp
-    src/network/Client.cpp
-    src/network/Server.cpp
-    src/Vectors.cpp
-    src/Xml.cpp
-    src/Matrix.cpp
-    src/Useful.cpp
-    src/SpriteBatcher.cpp
-    src/Image.cpp
-    src/RenderTexture.cpp
-    src/VulkanVideo.cpp
-    src/SDLVideo.cpp
-    src/Extensions.cpp
-    src/ShaderProgram.cpp
-    src/Shader.cpp
-    src/audio/OggStream.cpp
-    src/audio/SoundSystem.cpp
+        src/gui/SelectMenu.cpp
+        src/OSTools.cpp
+        src/Particles2D.cpp
+        src/gui/Text.cpp
+        src/gui/Slider.cpp
+        src/gui/EditBox.cpp
+        src/SysConfig.cpp
+        src/network/Socket.cpp
+        src/network/Client.cpp
+        src/network/Server.cpp
+        src/Vectors.cpp
+        src/Xml.cpp
+        src/Matrix.cpp
+        src/Useful.cpp
+        src/SpriteBatcher.cpp
+        src/Image.cpp
+        src/RenderTexture.cpp
+        src/VulkanVideo.cpp
+        src/SDLVideo.cpp
+        src/Extensions.cpp
+        src/ShaderProgram.cpp
+        src/Shader.cpp
+        src/audio/OggStream.cpp
+        src/audio/SoundSystem.cpp
+        src/AndroidFile.cpp
 
+)
+if (CMAKE_SYSTEM_NAME STREQUAL "Android")
+    set_source_files_properties(src/Extensions.cpp PROPERTIES HEADER_FILE_ONLY TRUE)
+    set_source_files_properties(src/SDLVideo.cpp PROPERTIES HEADER_FILE_ONLY TRUE)
+
+
+    add_library(openal-soft SHARED IMPORTED)
+    set_target_properties(openal-soft PROPERTIES IMPORTED_LOCATION
+            "${OPENAL_DIR}/${ANDROID_ABI}/libopenal.so")
+    add_library(ogg SHARED IMPORTED)
+    set_target_properties(ogg PROPERTIES IMPORTED_LOCATION
+            "${OGG_VORBIS_DIR}/lib/${ANDROID_ABI}/libogg.a")
+    add_library(vorbis SHARED IMPORTED)
+    set_target_properties(vorbis PROPERTIES IMPORTED_LOCATION
+            "${OGG_VORBIS_DIR}/lib/${ANDROID_ABI}/libvorbis.a")
+else()
+    set_source_files_properties(src/AndroidFile.cpp PROPERTIES HEADER_FILE_ONLY TRUE)
+endif ()
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Android")
+    target_link_libraries(disarray PUBLIC
+            android
+            log
+            vulkan
+            openal-soft
+            EGL
+            GLESv2
+            ogg
+            vorbis
     )
 
-target_link_libraries(disarray
-    SDL2
-    GL
-    openal
-    vorbisfile
-    ogg
-    vulkan
+else ()
+    target_link_libraries(disarray
+            SDL2
+            GL
+            openal
+            vorbisfile
+            ogg
+            vulkan
     )
+endif ()
+
 

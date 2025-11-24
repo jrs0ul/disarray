@@ -10,7 +10,7 @@
         #include <SDL2/SDL.h>
         #include <SDL2/SDL_opengl.h>
     #endif
-#elif ANDROID
+#elif __ANDROID__
     #include <GLES2/gl2.h>
     #include <GLES2/gl2ext.h>
     #include <vulkan/vulkan.h>

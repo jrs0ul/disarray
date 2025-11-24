@@ -17,7 +17,7 @@ struct MenuOption
 
 //--------------------------------------
 
-class Vector3D;
+struct Vector3D;
 
 class SelectMenu : public BasicControl
 {
