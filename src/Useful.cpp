@@ -1,6 +1,6 @@
+#include <disarray/Useful.h>
 #include <cmath>
-#include "Useful.h"
-#include "Matrix.h"
+#include <disarray/Matrix.h>
 
 
 //-----------------------------------------

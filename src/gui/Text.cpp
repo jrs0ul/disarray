@@ -1,5 +1,5 @@
-#include <gui/Text.h>
-#include <SpriteBatcher.h>
+#include <disarray/gui/Text.h>
+#include <disarray/SpriteBatcher.h>
 
 
 void WriteText(unsigned int x, unsigned int y,

@@ -1,8 +1,8 @@
-#include <audio/OggStream.h>
+#include <disarray/audio/OggStream.h>
 
 #ifdef __ANDROID__
 
-#include <AndroidFile.h>
+#include <disarray/AndroidFile.h>
 
 
 bool OggStream::open(const char* path, AAssetManager* assman)

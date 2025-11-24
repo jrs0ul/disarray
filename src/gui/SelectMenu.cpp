@@ -1,6 +1,6 @@
-#include <gui/SelectMenu.h>
-#include <gui/Text.h>
-#include <TouchData.h>
+#include <disarray/gui/SelectMenu.h>
+#include <disarray/gui/Text.h>
+#include <disarray/TouchData.h>
 
 
 void SelectMenu::init(unsigned int dx,

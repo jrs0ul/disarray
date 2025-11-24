@@ -1,0 +1,6 @@
+<xml>
+<Images>
+    <Img src="pics/chars.tga" width="16" height="16" filter="0" /> 
+    <Img src="pics/tiles.tga" width="8" height="8" filter="0" />
+</Images>
+</xml>

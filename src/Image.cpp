@@ -1,17 +1,16 @@
 /*
- The Disarray 
- by jrs0ul(jrs0ul ^at^ gmail ^dot^ com) 2010
+ The Disarray
+ by jrs0ul(jrs0ul ^at^ gmail ^dot^ com) 2025
  -------------------------------------------
  TGA loader/saver
- mod. 2010.11.30
  */
+#include <disarray/Image.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "Image.h"
 #ifdef __ANDROID__
 #include <android/log.h>
-#include "AndroidFile.h"
+#include <disarray/AndroidFile.h>
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "native-activity", __VA_ARGS__))
 #endif
 

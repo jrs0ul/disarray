@@ -1,4 +1,4 @@
-#include <gui/EditBox.h>
+#include <disarray/gui/EditBox.h>
 #include <cstdio>
 #include <cstdlib>
 #ifdef _WIN32
@@ -13,8 +13,8 @@
     #endif
 #endif
 
-#include <gui/Text.h>
-#include <ActionKeys.h>
+#include <disarray/gui/Text.h>
+#include <disarray/ActionKeys.h>
 
 
 

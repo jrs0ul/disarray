@@ -1,5 +1,5 @@
-#include "VulkanVideo.h"
-#include "MathTools.h"
+#include <disarray/VulkanVideo.h>
+#include <disarray/MathTools.h>
 
 #ifdef __ANDROID__
 #include <android/log.h>

@@ -5,18 +5,18 @@
  Sprite batcher
  */
 
+#include <disarray/SpriteBatcher.h>
 #include <cstdio>
 #include <cstring>
 #include <cmath>
 #include <cwchar>
 #ifndef __ANDROID__
-#include "Extensions.h"
+#include <disarray/Extensions.h>
 #endif
-#include "SpriteBatcher.h"
-#include "Vectors.h"
-#include "OSTools.h"
-#include "Xml.h"
-#include "VulkanVideo.h"
+#include <disarray/Vectors.h>
+#include <disarray/OSTools.h>
+#include <disarray/Xml.h>
+#include <disarray/VulkanVideo.h>
 
 #ifdef __ANDROID__
 #include <android/log.h>

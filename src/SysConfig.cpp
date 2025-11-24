@@ -1,10 +1,9 @@
-
-#include "SysConfig.h"
+#include <disarray/SysConfig.h>
 #include <cwchar>
 #include <cstdio>
 
 #ifndef __ANDROID__
-#include "Xml.h"
+#include <disarray/Xml.h>
 
 
     bool SystemConfig::load(const char * config){

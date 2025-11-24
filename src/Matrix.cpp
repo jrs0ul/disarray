@@ -1,10 +1,10 @@
 /*
  The Disarray 
- by jrs0ul(jrs0ul ^at^ gmail ^dot^ com) 2017
+ by jrs0ul(jrs0ul ^at^ gmail ^dot^ com) 2025
  -------------------------------------------
  Matrices
  */
-#include "Matrix.h"
+#include <disarray/Matrix.h>
 #include <cmath>
 #include <cstdio>
 

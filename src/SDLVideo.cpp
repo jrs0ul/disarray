@@ -2,11 +2,11 @@
  The Disarray 
  by jrs0ul(jrs0ul ^at^ gmail ^dot^ com) 2025
  -------------------------------------------
- SDL window
+ SDL window for PC
  */
 
-#include "SDLVideo.h"
-#include "VulkanVideo.h"
+#include <disarray/SDLVideo.h>
+#include <disarray/VulkanVideo.h>
 #include <cstdio>
 
 #ifdef _WIN32
@@ -16,15 +16,7 @@
         #include <SDL2/SDL_opengl.h>
     #endif
 #else
-    #ifdef __APPLE__
-        #include <TargetConditionals.h>
-        #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
-            #include <OpenGLES/ES1/gl.h>
-            #include <OpenGLES/ES1/glext.h>
-        #else
-              #include <SDL/SDL_opengl.h>
-        #endif
-    #elif __ANDROID__
+    #ifdef __ANDROID__
             #include <GLES2/gl2.h>
             #include <GLES2/gl2ext.h>
     #else

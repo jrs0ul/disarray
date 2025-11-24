@@ -1,21 +1,20 @@
 /*
  The Disarray 
- by jrs0ul(jrs0ul ^at^ gmail ^dot^ com) 2017
+ by jrs0ul(jrs0ul ^at^ gmail ^dot^ com) 2025
  -------------------------------------------
  some usefull stuff
- mod. 2010.09.27
  */
+#include <disarray/OSTools.h>
 #include <cstring>
 #include <cmath>
 #include <cwchar>
 #include <cstdlib>
 #ifdef __ANDROID__
     #include <android/log.h>
-    #include "AndroidFile.h"
+    #include <disarray/AndroidFile.h>
     #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "native-activity", __VA_ARGS__))
 
 #endif
-#include "OSTools.h"
 
 
 

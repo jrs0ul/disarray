@@ -1,19 +1,18 @@
 /*
  The Disarray 
- by jrs0ul(jrs0ul ^at^ gmail ^dot^ com) 2010
+ by jrs0ul(jrs0ul ^at^ gmail ^dot^ com) 2025
  -------------------------------------------
  Reads XML
- mod. 2010.09.27
  */
 
+#include <disarray/Xml.h>
 #include <cstring>
 #include <cwchar>
 #include <clocale>
 #include <cerrno>
-#include "Xml.h"
-#include "OSTools.h"
+#include <disarray/OSTools.h>
 
-    
+
     //------------------------------------------------------
     void CString::set(const wchar_t * t){
         destroy();

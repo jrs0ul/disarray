@@ -5,9 +5,9 @@
  Shader program
  */
 
-#include "ShaderProgram.h"
+#include <disarray/ShaderProgram.h>
 #include <cstdio>
-#include "VulkanVideo.h"
+#include <disarray/VulkanVideo.h>
 
 #ifdef __ANDROID__
 #include <android/log.h>

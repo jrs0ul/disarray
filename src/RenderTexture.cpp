@@ -1,12 +1,12 @@
-#include "RenderTexture.h"
+#include <disarray/RenderTexture.h>
 #ifndef __ANDROID__
-    #include "Extensions.h"
+    #include <disarray/Extensions.h>
 #else
     #include <android/log.h>
     #include <android/log_macros.h>
     #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 #endif
-#include "VulkanVideo.h"
+#include <disarray/VulkanVideo.h>
 
 
 void RenderTexture::create(uint32_t width,

@@ -1,13 +1,12 @@
 /*
  The Disarray 
- by jrs0ul(jrs0ul ^at^ gmail ^dot^ com) 2010
+ by jrs0ul(jrs0ul ^at^ gmail ^dot^ com) 2025
  -------------------------------------------
  Vectors
- mod. 2010.09.27
  */
+#include <disarray/Vectors.h>
 #include <cmath>
 #include <cstring>
-#include "Vectors.h"
 
 void Vector3D::transform(float matrix[4][4]){
     float nw[4];

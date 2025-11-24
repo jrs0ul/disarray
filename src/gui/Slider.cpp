@@ -1,7 +1,7 @@
-#include <gui/Slider.h>
+#include <disarray/gui/Slider.h>
 #include <cstring>
-#include <gui/Text.h>
-#include <SpriteBatcher.h>
+#include <disarray/gui/Text.h>
+#include <disarray/SpriteBatcher.h>
 
 
 void ScroollControl::init(unsigned int dx, unsigned int dy,

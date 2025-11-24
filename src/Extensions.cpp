@@ -1,4 +1,4 @@
-#include "Extensions.h"
+#include <disarray/Extensions.h>
 
 const GLubyte * GLExtensionString = 0;
 

@@ -1,4 +1,4 @@
-#include <audio/SoundSystem.h>
+#include <disarray/audio/SoundSystem.h>
 
 #include <cstdio>
 #include <cwchar>
@@ -6,11 +6,11 @@
 
 #ifdef __ANDROID__
 #include <android/log.h>
-#include <AndroidFile.h>
+#include <disarray/AndroidFile.h>
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "native-activity", __VA_ARGS__))
 #endif
 
-#include <Xml.h>
+#include <disarray/Xml.h>
 
 
 //-------------------------------------------------------------------

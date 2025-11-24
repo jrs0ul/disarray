@@ -1,5 +1,5 @@
-#include "OSTools.h"
-#include "Shader.h"
+#include <disarray/Shader.h>
+#include <disarray/OSTools.h>
 #ifdef __ANDROID__
 #include <android/log.h>
 #include <vulkan/vulkan.h>

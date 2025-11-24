@@ -1,6 +1,4 @@
-
-
-#include "Particles2D.h"
+#include <disarray/Particles2D.h>
 #include <cstdlib>
 
 void Particle2DSystem::drawParticles(SpriteBatcher& pics,
