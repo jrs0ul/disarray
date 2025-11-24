@@ -155,30 +155,26 @@ void Game::init(){
 
     MatrixOrtho(0.0, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0, -400, 400, OrthoMatrix);
 
-
+    SoundSystem* ss = SoundSystem::getInstance();
+    ss->init(0);
 #ifndef __ANDROID__
+    ss->loadFiles("sfx", "list.xml");
     pics.load("pics/imagesToLoad.xml");
-    SoundSystem::getInstance()->init(0);
     music.open("music/music.ogg");
+#else
+    ss->loadFiles("sfx", "list.xml", AssetManager);
+    pics.load("pics/imagesToLoad.xml", AssetManager);
+    music.open("music/music.ogg", AssetManager);
+#endif
+    ss->setVolume(0, sys.soundFXVolume);
+    ss->setupListener(Vector3D(0, 0, 0).v, Vector3D(0, 0, 0).v);
+
+    
     music.setVolume(sys.musicVolume);
     music.playback();
 
-#else
-    pics.load("pics/imagesToLoad.xml", AssetManager);
-    if (!SoundSystem::getInstance()->init()) {
-        LOGI("FAIL!\n");
-        ss.exit();
-    }
-    //ss.loadFiles("sfx/", "list.txt", AssetManager);
-    ss.playMusic("music/music.ogg", AssetManager);
-
-    LOGI("Inited\n");
-#endif
-
 
     useAccel = false;
-
-    srand((unsigned int)time(0));
 
     gameMode = TITLE;
     lavaSpeed = 100;
@@ -275,6 +271,7 @@ void Game::GameLoop()
             score = 0;
             lives = 3;
         }
+        SoundSystem::getInstance()->playsound(0);
         restartGame();
         return;
     }
