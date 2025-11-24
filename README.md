@@ -2,7 +2,7 @@
 
 A collection of crappy C/C++ code that helps me make games for **Linux**,
 **Windows** and **Android**.
-## How to build:
+
 ### Libraries you will need for this to work
 - SDL2
 - OpenAL(OpenAL-soft)
@@ -17,7 +17,11 @@ https://digitalkarabela.com/how-to-compile-openal-library-for-android-with-oboe-
 Prebuilt Ogg/Vorbis for Android:
 
 https://github.com/mregnauld/ogg-vorbis-libraries-android
-```mkdir build
+
+### How to build:
+
+```
+mkdir build
 cd build
 cmake ..
 cmake --build . -- -j8
