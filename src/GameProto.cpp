@@ -4,6 +4,7 @@
 #include <disarray/SpriteBatcher.h>
 #include <disarray/SysConfig.h>
 #include <disarray/ShaderLoader.h>
+#include <disarray/VulkanVideo.h>
 #include <disarray/TouchData.h>
 
 GameProto::GameProto()
@@ -41,8 +42,8 @@ void GameProto::destroy()
     SoundSystem::getInstance()->freeData();
     SoundSystem::getInstance()->exit();
 
-    //pics->destroy();
-    //shaders->destroy();
+    pics->destroy(vk->getDevice());
+    shaders->destroy();
 
 }
 
