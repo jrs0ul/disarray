@@ -1,7 +1,8 @@
 #include <disarray/disarray.h>
 #include <disarray/GameProto.h>
+#ifndef __ANDROID__
 #include <disarray/SDLVideo.h>
-
+#endif
 
 disarray::disarray(GameProto* ng, _SDL_GameController* controller)
 {
@@ -15,7 +16,7 @@ disarray::disarray(GameProto* ng, _SDL_GameController* controller)
     gamepad = controller;
 }
 
-
+#ifndef __ANDROID__
 void disarray::whileLoopPC(SDLVideo* sdl)
 {
     while (game->works)
@@ -164,3 +165,4 @@ void disarray::handleInputPC()
     }
 
 }
+#endif
