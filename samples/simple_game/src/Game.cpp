@@ -1,5 +1,3 @@
-#include <vector>
-#include <cwchar>
 #include "Game.h"
 #include <disarray/audio/OggStream.h>
 #include <disarray/audio/SoundSystem.h>
@@ -86,18 +84,17 @@ void Game::initMap()
 }
 
 //----------------------------------------
-void Game::init(){
-
+void Game::init(bool useVulkan)
+{
     srand(time(0));
-
     LoadExtensions();
-    printf("Loading shaders...\n");
+
+    shaders->init(useVulkan, vk, pics);
     if (!shaders->load("shaders", "list.xml"))
     {
         printf("NO SHADERS!\n");
     }
 
-    printf("done.\n");
     shaders->shaders[1].use();
 
     glClearColor(0.5f, 0.5f, 0.6f, 1.0f);
@@ -105,28 +102,25 @@ void Game::init(){
     glDepthFunc(GL_LEQUAL);
     glEnable (GL_BLEND);
 
-
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     MatrixOrtho(0.0, screenWidth, screenHeight, 0.0, -400, 400, orthoMatrix);
 
     SoundSystem* ss = SoundSystem::getInstance();
     ss->init(0);
+
     if (!ss->loadFiles("sfx/", "list.xml"))
     {
         printf("SFXs ARE MISSING!\n");
     }
+
     pics->load("pics/imagesToLoad.xml");
     music->open("music/music.ogg");
-    ss->setVolume(0, 100);//sys->soundFXVolume);
+    ss->setVolume(0, 100);
     ss->setupListener(Vector3D(0, 0, 0).v, Vector3D(0, 0, 0).v);
 
-    
     music->setVolume(sys->musicVolume);
     music->playback();
-
-
-    useAccel = false;
 
     gameMode = TITLE;
     lavaSpeed = 100;
@@ -157,7 +151,6 @@ void Game::render()
 //---------------------
 void Game::logic()
 {
-
     if (music->playing())
     {
         music->update();
@@ -166,11 +159,7 @@ void Game::logic()
     GameLoop();
 
     touches->oldDown.clear();
-    for (unsigned long i = 0; i < touches->down.size(); i++)
-    {
-        Vector3D v = touches->down[i];
-        touches->oldDown.push_back(v);
-    }
+    touches->oldDown = touches->down;
     touches->up.clear();
     touches->down.clear();
     touches->move.clear();
@@ -181,15 +170,10 @@ void Game::destroy()
     GameProto::destroy();
 }
 
-//---------------------------
-void Game::onBack()
-{
-}
-
 //------------------------------------
 void Game::GameLoop()
 {
-    if (gameMap[playerY / 8 * MAPWIDTH + playerX / 8] == 9)
+    if (gameMap[playerY / TILE_SIZE * MAPWIDTH + playerX / TILE_SIZE] == 9)
     {
         lavaSpeed = 100;
 
@@ -200,18 +184,18 @@ void Game::GameLoop()
             lives = 3;
         }
         SoundSystem::getInstance()->playsound(0);
+        doRumble = true;
         restartGame();
         return;
     }
 
-
     if (!isPlayerMining)
     {
 
-        if (Keys[2] == 1)
+        if (keys[3] == 1)
         {
-            if (playerX > 4 && gameMap[playerY / 8 * MAPWIDTH + ((playerX - 5) / 8)] != 7 &&
-                    gameMap[playerY / 8 * MAPWIDTH + ((playerX - 5) / 8)] != 8 && (playerY - 4) % 8 == 0)
+            if (playerX > 4 && gameMap[playerY / TILE_SIZE * MAPWIDTH + ((playerX - 5) / TILE_SIZE)] != 7 &&
+                    gameMap[playerY / TILE_SIZE * MAPWIDTH + ((playerX - 5) / TILE_SIZE)] != 8 && (playerY - 4) % 8 == 0)
             {
                 playerX -= 1; 
             }
@@ -220,14 +204,14 @@ void Game::GameLoop()
             ++playerFrameTimer;
         }
 
-        if (Keys[3] == 1)
+        if (keys[2] == 1)
         {
-            if (playerX < MAPWIDTH * 8 - 4 && gameMap[playerY / 8 * MAPWIDTH + ((playerX + 4) / 8)] != 7 &&
-                    gameMap[playerY / 8 * MAPWIDTH + ((playerX + 4) / 8)] != 8 && (playerY - 4) % 8 == 0)
+            if (playerX < MAPWIDTH * TILE_SIZE - 4 && gameMap[playerY / 8 * MAPWIDTH + ((playerX + 4) / TILE_SIZE)] != 7 &&
+                    gameMap[playerY / TILE_SIZE * MAPWIDTH + ((playerX + 4) / TILE_SIZE)] != 8 && (playerY - 4) % TILE_SIZE == 0)
             {
                 playerX += 1;
 
-                if (gameMap[playerY / 8 * MAPWIDTH + playerX / 8] == 5)
+                if (gameMap[playerY / TILE_SIZE * MAPWIDTH + playerX / TILE_SIZE] == 5)
                 {
                     // Increase lava flow
                     lavaSpeed -= 5;
@@ -246,10 +230,10 @@ void Game::GameLoop()
             ++playerFrameTimer;
         }
 
-        if (Keys[1] == 1 && gameMap[((playerY + 4) / 8) * MAPWIDTH + playerX / 8] == 11)
+        if (keys[1] == 1 && gameMap[((playerY + 4) / TILE_SIZE) * MAPWIDTH + playerX / TILE_SIZE] == 11)
         {
             playerY += 1;
-            playerX = (playerX / 8) * 8 + 4;
+            playerX = (playerX / TILE_SIZE) * TILE_SIZE + 4;
             playerFrame = 3;
         }
 
@@ -261,7 +245,7 @@ void Game::GameLoop()
         playerFrame = (playerFrame == 1) ? 2 : 1;
     }
 
-    if (Keys[4] == 1 && !isPlayerMining)
+    if (keys[4] == 1 && !isPlayerMining)
     {
         isPlayerMining = true;
         playerMineTimer = 0;
@@ -278,14 +262,14 @@ void Game::GameLoop()
             playerFrame = 2;
             playerMineTimer = 0;
 
-            uint8_t brickXToMine = (flipPlayer == false) ? (playerX + 5) / 8 : (playerX - 5) / 8;
-            uint8_t brickYToMine = playerY / 8;
+            uint8_t brickXToMine = (flipPlayer == false) ? (playerX + 5) / TILE_SIZE : (playerX - 5) / TILE_SIZE;
+            uint8_t brickYToMine = playerY / TILE_SIZE;
 
             if (brickYToMine < MAPHEIGHT && brickXToMine < MAPWIDTH)
             {
                 if (gameMap[brickYToMine * MAPWIDTH + brickXToMine] != 9 && gameMap[brickYToMine * MAPWIDTH + brickXToMine] != 0)
                 {
-                    gameMap[brickYToMine * MAPWIDTH + brickXToMine] = (rand() % 10 == 9) ? 8 : 0;
+                    gameMap[brickYToMine * MAPWIDTH + brickXToMine] = (rand() % 10 == 9) ? TILE_SIZE : 0;
 
                     if (gameMap[brickYToMine * MAPWIDTH + brickXToMine] == 0)
                     {
@@ -301,7 +285,7 @@ void Game::GameLoop()
         }
     }
  //----------- LAVA stuff
-    if (playerY / 8 > 1 && !runLava)
+    if (playerY / TILE_SIZE > 1 && !runLava)
     {
         runLava = true;
         gameMap[0] = 9;
@@ -352,28 +336,22 @@ void Game::GameLoop()
             }
         }
     }
-
 }
 
 //---------------------------
 void Game::Render2D()
 {
-    for (uint8_t i = 0; i < 13; ++i)
+    for (uint8_t i = 0; i < MAPWIDTH; ++i)
     {
-        for (uint8_t j = 0; j < 7; ++j)
+        for (uint8_t j = 0; j < MAPHEIGHT; ++j)
         {
-            pics->draw(1, i * 40, j * 40, gameMap[j * MAPWIDTH + i], false, 5.f, 5.f);
+            pics->draw(1, i * 40, j * 40, gameMap[j * MAPWIDTH + i], false, (float)TILE_SCALE, (float)TILE_SCALE);
         }
     }
 
-    int scaleX = 5;
+    float scaleX = (float)((flipPlayer) ? -TILE_SCALE : TILE_SCALE);
 
-    if (flipPlayer)
-    {
-        scaleX = -5;
-    }
-
-    pics->draw(1, playerX * 5, playerY * 5, playerFrame, true, scaleX, 5.f);
+    pics->draw(1, playerX * TILE_SCALE, playerY * TILE_SCALE, playerFrame, true, scaleX, (float)TILE_SCALE);
     DrawDebugText();
 }
 
@@ -384,7 +362,7 @@ void Game::DrawDebugText()
     sprintf(buf, "FPS:%d", fps());
     WriteText(580, 2, *pics, 0, buf, 0.8f, 0.8f);
     sprintf(buf, "lives %u", lives);
-    WriteText(520, 120, *pics, 0, buf, 0.8f, 0.8f);
+    WriteText(520, 120, *pics, 0, buf);//, 1.0f, 0.8f);
     sprintf(buf, "score %u", score);
-    WriteText(520, 140, *pics, 0, buf, 0.8f, 0.8f);
+    WriteText(520, 140, *pics, 0, buf);//, 0.8f, 0.8f);
 }

@@ -1,6 +1,7 @@
 #include <disarray/SDLVideo.h>
 #include <disarray/OSTools.h>
 #include <disarray/TouchData.h>
+#include <disarray/disarray.h>
 #include <ctime>
 #include "Game.h"
 
@@ -60,68 +61,22 @@ static void  process_events()
         }break;
 
         }
-
     }
 }
-//--------------------
-void CheckKeys()
+
+class DS : public disarray
 {
-    float scaleX = 640.0f / game.screenWidth;
-    float scaleY = 360.0f / game.screenHeight;
-    int JoyNum = 0;
-
-    const Uint8* keys = SDL_GetKeyboardState(NULL);
-
-    JoyNum = SDL_NumJoysticks();
-
-    if (JoyNum > 0) 
+public:
+    DS(GameProto* ng, _SDL_GameController* controller) : disarray(ng, controller)
     {
-        SDL_JoystickOpen(0);
-
-        SDL_JoystickUpdate ();
-        JoyX = SDL_JoystickGetAxis(Joy, 0);
-        JoyY = SDL_JoystickGetAxis(Joy, 1);
     }
+    void otherWhileLoopActivities() override {process_events();}
+};
 
-    SDL_GetRelativeMouseState ( &MouseX,&MouseY );
-    SDL_GetMouseState(&_MouseX, &_MouseY);
-
-    game.gamepad.v[0] = JoyX / 1000.0f;
-    game.gamepad.v[1] = JoyY / 1000.0f;
-    game.MouseX = _MouseX * scaleX;
-    game.MouseY = _MouseY * scaleY;
-
-    memcpy(game.OldKeys, game.Keys, 20);
-    memset(game.Keys, 0, 20);
-
-    if ( keys[SDL_SCANCODE_W] )     game.Keys[0] = 1;
-    if ( keys[SDL_SCANCODE_S] )     game.Keys[1] = 1;
-    if ( keys[SDL_SCANCODE_A] )     game.Keys[2] = 1;
-    if ( keys[SDL_SCANCODE_D] )     game.Keys[3] = 1;
-    if ( keys[SDL_SCANCODE_UP] )    game.Keys[0] = 1;
-    if ( keys[SDL_SCANCODE_DOWN])   game.Keys[1] = 1;
-    if ( keys[SDL_SCANCODE_LEFT])   game.Keys[2] = 1;
-    if ( keys[SDL_SCANCODE_RIGHT])  game.Keys[3] = 1;
-    if ( keys[SDL_SCANCODE_SPACE])  game.Keys[4] = 1;
-    if ( keys[SDL_SCANCODE_RETURN]) game.Keys[5] = 1;
-    if ( keys[SDL_SCANCODE_ESCAPE]) game.Keys[6] = 1;
-    if ( keys[SDL_SCANCODE_DELETE]) game.Keys[7] = 1;
-
-    if (JoyNum)
-    {
-        if (SDL_JoystickGetButton (Joy, 0))
-            game.Keys[4] = 1;
-        if (SDL_JoystickGetButton (Joy, 1))
-            game.Keys[5] = 1;
-
-        SDL_JoystickClose(0);
-    }
-}
 //--------------------
 int main( int   argc, char *argv[] )
 {
     srand(time(0));
-
     char buf[255];
     GetHomePath(buf);
     sprintf(game.documentPath, "%s.atari2600game", buf);
@@ -138,41 +93,26 @@ int main( int   argc, char *argv[] )
         game.works = false;
     }
 
+    SDL_GameController* gamepad = nullptr;
+
     SDL_InitSubSystem(SDL_INIT_JOYSTICK);
     if(SDL_NumJoysticks() > 0)
     {
+
         Joy = SDL_JoystickOpen(0);
+
+        if (SDL_IsGameController(0))
+        {
+            gamepad = SDL_GameControllerOpen(0);
+        }
     }
 
-    game.init();
+    game.init(false);
     game.timeTicks = SDL_GetTicks();
 
+    DS ds(&game, gamepad);
 
-    while (game.works)
-    {
-        if ((SDL_GetTicks() > tick))
-        {
-            game.deltaTime = (SDL_GetTicks() - game.timeTicks) / 1000.0f;
-            game.timeTicks = SDL_GetTicks();
-
-            game.accumulator += game.deltaTime;
-
-            while (game.accumulator >= game.dT)
-            {
-                game.logic();
-                game.accumulator -= game.dT;
-            }
-
-            CheckKeys();
-            game.render();
-            SDL.swap(false);
-
-            tick = SDL_GetTicks() + 1000/61;
-        }
-
-        SDL_Delay(0.6);
-        process_events();
-    }
+    ds.whileLoopPC(&SDL);
 
     game.destroy();
     SDL.quit(false);

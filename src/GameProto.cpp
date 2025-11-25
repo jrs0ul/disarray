@@ -15,6 +15,7 @@ GameProto::GameProto()
     shaders = new ShaderLoader();
     touches = new TouchData;
 
+    vk = nullptr;
     screenWidth = 640;
     screenHeight = 480;
     works = true;
@@ -42,7 +43,9 @@ void GameProto::destroy()
     SoundSystem::getInstance()->freeData();
     SoundSystem::getInstance()->exit();
 
-    pics->destroy(vk->getDevice());
+    printf("Destroing pics...\n");
+    pics->destroy((vk) ? vk->getDevice() : nullptr);
+    printf("Destroing shaders...\n");
     shaders->destroy();
 
 }

@@ -1501,8 +1501,7 @@ void SpriteBatcher::destroy(VkDevice* vkDevice)
 {
     if (!isVulkan)
     {
-        vkDestroyDescriptorPool(*vkDevice, vkDescriptorPool, nullptr);
-        vkDestroyDescriptorSetLayout(*vkDevice, vkDescriptorSetLayout, nullptr);
+        printf("Deleting opengl textures...\n");
 
         for (unsigned long i = 0; i < glTextures.size(); i++)
         {
@@ -1517,6 +1516,9 @@ void SpriteBatcher::destroy(VkDevice* vkDevice)
     else // Vulkan
     {
         printf("Deleting Vulkan textures...\n");
+
+        vkDestroyDescriptorPool(*vkDevice, vkDescriptorPool, nullptr);
+        vkDestroyDescriptorSetLayout(*vkDevice, vkDescriptorSetLayout, nullptr);
 
         for (unsigned long i = 0; i < vkTextures.size(); ++i)
         {

@@ -46,6 +46,7 @@ add_library(disarray
         src/AndroidFile.cpp
         src/ShaderLoader.cpp
         src/GameProto.cpp
+        src/disarray.cpp
 
 )
 if (CMAKE_SYSTEM_NAME STREQUAL "Android")
