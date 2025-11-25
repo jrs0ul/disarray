@@ -38,12 +38,11 @@ void GameProto::destroy()
 {
     printf("ProtoGame::destroy()\n");
     music->release();
-    SoundSystem* ss = SoundSystem::getInstance();
-    ss->freeData();
-    ss->exit();
+    SoundSystem::getInstance()->freeData();
+    SoundSystem::getInstance()->exit();
 
-    pics->destroy();
-    shaders->destroy();
+    //pics->destroy();
+    //shaders->destroy();
 
 }
 

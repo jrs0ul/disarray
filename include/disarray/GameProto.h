@@ -7,6 +7,7 @@ class OggStream;
 class SpriteBatcher;
 class SystemConfig;
 class ShaderLoader;
+class VulkanVideo;
 struct TouchData;
 
 
@@ -30,20 +31,22 @@ public:
     SystemConfig*   sys;
     ShaderLoader*   shaders;
     TouchData*      touches;
+    VulkanVideo*    vk;
 
     float           deltaTime;
     float           dT;
     float           accumulator;
 
-    int             screenWidth;
-    int             screenHeight;
+    unsigned        screenWidth;
+    unsigned        screenHeight;
     bool            works;
+    bool            hasVulkan;
 
 public:
     GameProto();
     ~GameProto();
 
-    virtual void init() = 0;
+    virtual void init(bool useVulkan) = 0;
     virtual void render() = 0;
     virtual void logic() = 0;
     virtual void destroy();

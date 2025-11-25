@@ -1,5 +1,16 @@
 #include <disarray/ShaderLoader.h>
+#include <disarray/VulkanVideo.h>
+#include <disarray/SpriteBatcher.h>
 #include <disarray/Xml.h>
+
+void ShaderLoader::init(bool useVulkan, VulkanVideo* vk, SpriteBatcher* pics)
+{
+    isVulkan = useVulkan;
+    _vk = vk;
+    _pics = pics;
+
+}
+
 
 #ifdef __ANDROID__
     bool ShaderLoader::load(const char* basedir, const char* listFile, AAssetManager& assman)
@@ -8,6 +19,9 @@
 #endif
 {
     char buf[512];
+    char shaderName[512];
+    int useUvs = 0;
+    int useAlphaBlend = 0;
     sprintf(buf, "%s/%s", basedir, listFile);
     Xml shaderList;
 
@@ -44,24 +58,62 @@
 
                 if (node->attributeCount())
                 {
-                    XmlAttribute* attr = node->getAttribute(0);
 
-                    if (attr)
+                    for (unsigned j = 0; j < node->attributeCount(); ++j)
                     {
-                        if (wcscmp(attr->getName(), L"name") == 0)
-                        {
+                        XmlAttribute* attr = node->getAttribute(j);
 
-                            wchar_t* value = attr->getValue();
-                            if (value)
+                        if (attr)
+                        {
+                            if (wcscmp(attr->getName(), L"name") == 0)
                             {
-                                sprintf(buf, "%ls", value);
-                                ShaderProgram shader;
-                                loadSingleShader(buf, shader);
-                                shaders.push_back(shader);
+                                wchar_t* value = attr->getValue();
+
+                                if (value)
+                                {
+                                    sprintf(shaderName, "%ls", value);
+                                }
                             }
+                            else if (wcscmp(attr->getName(), L"useUvs") == 0)
+                            {
+                                wchar_t* value = attr->getValue();
+
+                                if (value)
+                                {
+                                    sprintf(buf, "%ls", value);
+                                    useUvs = atoi(buf);
+                                }
+                            }
+                            else if (wcscmp(attr->getName(), L"useAlphaBlend") == 0)
+                            {
+                                wchar_t* value = attr->getValue();
+
+                                if (value)
+                                {
+                                    sprintf(buf, "%ls", value);
+                                    useAlphaBlend = atoi(buf);
+                                }
+                            }
+
+
                         }
+
+                    } //  attribute for
+
+
+
+                    if (strlen(shaderName))
+                    {
+                        ShaderProgram shader;
+#ifdef __ANDROID__
+                        loadSingleShader(shaderName, shader, useUvs, useAlphaBlend, assman);
+#else
+                        loadSingleShader(shaderName, shader, useUvs, useAlphaBlend);
+#endif
+                        shaders.push_back(shader);
                     }
-                }
+
+                } // has attributes
 
             }
         }
@@ -72,59 +124,118 @@
     return true;
 }
 
+
+#ifdef __ANDROID__
+    void ShaderLoader::addShaderManualy(const char* name, bool useUvs, bool needAlphaBlend, AAssetManager& assman)
+#else
+    void ShaderLoader::addShaderManualy(const char* name, bool useUvs, bool needAlphaBlend)
+#endif
+{
+    ShaderProgram newShader;
+
+    loadSingleShader(name, newShader, useUvs, needAlphaBlend);
+    shaders.push_back(newShader);
+
+}
+
+
 void ShaderLoader::destroy()
 {
 
     for (std::vector<ShaderProgram>::reverse_iterator it = shaders.rbegin(); it < shaders.rend(); ++it)
     {
-        it->destroy();
+        it->destroy((isVulkan) ? _vk->getDevice() : nullptr);
     }
 
     shaders.clear();
 
 }
 
-void ShaderLoader::loadSingleShader(const char* name, ShaderProgram& shader)
+#ifdef __ANDROID__
+void ShaderLoader::loadSingleShader(const char* name, ShaderProgram& shader, bool useUvs, bool needAlphaBlend, AAssetManager& assman)
+#else
+void ShaderLoader::loadSingleShader(const char* name, ShaderProgram& shader, bool useUvs, bool needAlphaBlend)
+#endif
 {
 
-    shader.create(false);
+    shader.create(isVulkan);
+
     char error[1024];
     char buf[512];
-    Shader vert;
-    Shader frag;
-    printf("Loading vertex shader...\n");
-    sprintf(buf, "shaders/%s.vert", name);
-#ifdef __ANDROID__
-    vert.loadGL(VERTEX_SHADER, buf, AssetManager);
-#else
-    vert.loadGL(VERTEX_SHADER, buf);
-#endif
 
-    printf("Loading fragment shader...\n");
-    sprintf(buf, "shaders/%s.frag", name);
-#ifdef __ANDROID__
-    frag.loadGL(FRAGMENT_SHADER, buf, AssetManager);
-#else
-    frag.loadGL(FRAGMENT_SHADER, buf);
-#endif
-
-    shader.attach(vert);
-    shader.attach(frag);
-    shader.link();
-
-    shader.getLog(error, 1024);
-    if (strlen(error)) 
+    if (!isVulkan)
     {
+        Shader vert;
+        Shader frag;
+
+        sprintf(buf, "shaders/%s.vert", name);
+        printf("Loading vertex shader %s...\n", buf);
+
 #ifdef __ANDROID__
-        LOGI("--%s--", buf);
-        LOGI("%s", error);
-    }
-    LOGI("---------------");
+        vert.loadGL(VERTEX_SHADER, buf, AssetManager);
 #else
-        printf("--%s--\n", buf);
-        puts(error);
-    }
-    puts("-----------");
+        vert.loadGL(VERTEX_SHADER, buf);
 #endif
+
+        sprintf(buf, "shaders/%s.frag", name);
+        printf("Loading fragment shader %s...\n", buf);
+#ifdef __ANDROID__
+        frag.loadGL(FRAGMENT_SHADER, buf, AssetManager);
+#else
+        frag.loadGL(FRAGMENT_SHADER, buf);
+#endif
+
+        shader.attach(vert);
+        shader.attach(frag);
+        shader.link();
+
+        shader.getLog(error, 1024);
+        if (strlen(error))
+        {
+#ifdef __ANDROID__
+            LOGI("--%s--", buf);
+            LOGI("%s", error);
+        }
+        LOGI("---------------");
+#else
+            printf("--%s--\n", buf);
+            puts(error);
+        }
+        puts("-----------");
+#endif
+    }
+    else //VULKAN
+    {
+        VkDevice*         vulkanDevice = _vk->getDevice();
+        VkPhysicalDevice* vkPhysicalDevice = _vk->getPhysicalDevice();
+        VkRenderPass*     vkRenderPass = _vk->getRenderPass();
+
+        Shader vert;
+        Shader frag;
+
+        sprintf(buf, "shaders/%s_vert.spv", name);
+#ifdef __ANDROID__
+        vert.loadVK(VERTEX_SHADER, buf, vulkanDevice, AssetManager);
+#else
+        vert.loadVK(VERTEX_SHADER, buf, vulkanDevice);
+#endif
+
+        shader.attach(vert);
+
+        sprintf(buf, "shaders/%s_frag.spv", name);
+#ifdef __ANDROID__
+        frag.loadVK(FRAGMENT_SHADER, buf, vulkanDevice, AssetManager);
+#else
+        frag.loadVK(FRAGMENT_SHADER, buf, vulkanDevice);
+#endif
+
+        shader.attach(frag);
+        shader.buildVkPipeline(vulkanDevice,
+                                vkPhysicalDevice,
+                                vkRenderPass,
+                                (_pics) ? _pics->getVkDSL() : nullptr,
+                                useUvs,
+                                needAlphaBlend);
+    }
 
 }
