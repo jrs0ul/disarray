@@ -122,7 +122,6 @@ void Game::init(bool useVulkan)
     music->setVolume(sys->musicVolume);
     music->playback();
 
-    gameMode = TITLE;
     lavaSpeed = 100;
     lives = 3;
     score = 0;
@@ -144,7 +143,20 @@ void Game::render()
     glUniformMatrix4fv(MatrixID, 1, GL_FALSE, finalM.m);
     glUniformMatrix4fv(MatrixID2, 1, GL_FALSE, finalM.m);
 
-    Render2D();
+    for (uint8_t i = 0; i < MAPWIDTH; ++i)
+    {
+        for (uint8_t j = 0; j < MAPHEIGHT; ++j)
+        {
+            pics->draw(1, i * 40, j * 40, gameMap[j * MAPWIDTH + i], false, (float)TILE_SCALE, (float)TILE_SCALE);
+        }
+    }
+
+    float scaleX = (float)((flipPlayer) ? -TILE_SCALE : TILE_SCALE);
+
+    pics->draw(1, playerX * TILE_SCALE, playerY * TILE_SCALE, playerFrame, true, scaleX, (float)TILE_SCALE);
+    DrawDebugText();
+
+
     pics->drawBatch(&shaders->shaders[1], &shaders->shaders[0], 666);
 }
 
@@ -336,23 +348,6 @@ void Game::GameLoop()
             }
         }
     }
-}
-
-//---------------------------
-void Game::Render2D()
-{
-    for (uint8_t i = 0; i < MAPWIDTH; ++i)
-    {
-        for (uint8_t j = 0; j < MAPHEIGHT; ++j)
-        {
-            pics->draw(1, i * 40, j * 40, gameMap[j * MAPWIDTH + i], false, (float)TILE_SCALE, (float)TILE_SCALE);
-        }
-    }
-
-    float scaleX = (float)((flipPlayer) ? -TILE_SCALE : TILE_SCALE);
-
-    pics->draw(1, playerX * TILE_SCALE, playerY * TILE_SCALE, playerFrame, true, scaleX, (float)TILE_SCALE);
-    DrawDebugText();
 }
 
 //----------------------------

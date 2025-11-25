@@ -5,12 +5,6 @@
 #include <disarray/Matrix.h>
 #include <disarray/Useful.h>
 
-enum GameModes
-{
-    TITLE,
-    GAME
-};
-
 
 class Game : public GameProto
 {
@@ -20,7 +14,6 @@ public:
     unsigned globalKEY;
     int      DebugMode;
 
-    void Render2D();
     void GameLoop();
     void DrawDebugText();
 
@@ -41,8 +34,6 @@ private:
     void restartGame();
     void initMap();
 
-public:
-    GameModes                   gameMode;
 private:
     static const uint8_t        MAPWIDTH = 13;
     static const uint8_t        MAPHEIGHT = 7;

@@ -5,17 +5,8 @@
 #include <ctime>
 #include "Game.h"
 
-
 SDLVideo SDL;
-SDL_Joystick *Joy = 0;
-int JoyX = 0;
-int JoyY = 0;
-int MouseX, MouseY; //relative mouse coords
-int _MouseX, _MouseY;
-unsigned long tick;
-
 Game game;
-
 
 static void  process_events()
 {
@@ -98,9 +89,6 @@ int main( int   argc, char *argv[] )
     SDL_InitSubSystem(SDL_INIT_JOYSTICK);
     if(SDL_NumJoysticks() > 0)
     {
-
-        Joy = SDL_JoystickOpen(0);
-
         if (SDL_IsGameController(0))
         {
             gamepad = SDL_GameControllerOpen(0);
