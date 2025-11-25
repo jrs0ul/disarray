@@ -35,7 +35,7 @@ void disarray::whileLoopPC(SDLVideo* sdl)
 
             handleInputPC();
             game->render();
-            sdl->swap(false);
+            sdl->swap(game->hasVulkan);
 
             game->tick = SDL_GetTicks() + 1000 / 61;
         }

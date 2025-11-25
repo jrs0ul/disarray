@@ -113,9 +113,6 @@ bool SDLVideo::initWindow(const char * title,
         VkSurfaceKHR surface;
         SDL_Vulkan_CreateSurface(mainWindow, *instance, &surface);
 
-        //int width, height = 0;
-        //SDL_Vulkan_GetDrawableSize(mainWindow, &width, &height);
-
         vk->init(surface);
     }
 
