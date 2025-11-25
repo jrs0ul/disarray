@@ -1,4 +1,4 @@
-#include "AndroidFile.h"
+#include <disarray/AndroidFile.h>
 #include <asm-generic/errno-base.h>
 
 static int android_read(void* cookie, char* buf, int size) {

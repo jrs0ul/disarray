@@ -17,14 +17,14 @@ public:
     void init(bool useVulkan, VulkanVideo* vk, SpriteBatcher* pics);
 
 #ifdef __ANDROID__
-    bool load(const char* basedir, const char* listFile, AAssetManager& assman);
+    bool load(const char* basedir, const char* listFile, AAssetManager* assman);
 #else
     bool load(const char* basedir, const char* listFile);
 #endif
 
 
 #ifdef __ANDROID__
-    void addShaderManualy(const char* name, bool useUvs, bool needAlphaBlend, AAssetManager& assman);
+    void addShaderManualy(const char* name, bool useUvs, bool needAlphaBlend, AAssetManager* assman);
 #else
     void addShaderManualy(const char* name, bool useUvs, bool needAlphaBlend);
 #endif
@@ -33,7 +33,7 @@ public:
 
 private:
 #ifdef __ANDROID__
-    void loadSingleShader(const char* name, ShaderProgram& shader, bool useUvs, bool needAlphaBlend, AAssetManager& assman);
+    void loadSingleShader(const char* name, ShaderProgram& shader, bool useUvs, bool needAlphaBlend, AAssetManager* assman);
 #else
     void loadSingleShader(const char* name, ShaderProgram& shader, bool useUvs, bool needAlphaBlend);
 #endif

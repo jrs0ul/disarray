@@ -2,6 +2,12 @@
 #include <disarray/VulkanVideo.h>
 #include <disarray/SpriteBatcher.h>
 #include <disarray/Xml.h>
+#ifdef __ANDROID__
+#include <android/log.h>
+#include <android/log_macros.h>
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+#endif
 
 void ShaderLoader::init(bool useVulkan, VulkanVideo* vk, SpriteBatcher* pics)
 {
@@ -13,7 +19,7 @@ void ShaderLoader::init(bool useVulkan, VulkanVideo* vk, SpriteBatcher* pics)
 
 
 #ifdef __ANDROID__
-    bool ShaderLoader::load(const char* basedir, const char* listFile, AAssetManager& assman)
+    bool ShaderLoader::load(const char* basedir, const char* listFile, AAssetManager* assman)
 #else
     bool ShaderLoader::load(const char* basedir, const char* listFile)
 #endif
@@ -126,14 +132,17 @@ void ShaderLoader::init(bool useVulkan, VulkanVideo* vk, SpriteBatcher* pics)
 
 
 #ifdef __ANDROID__
-    void ShaderLoader::addShaderManualy(const char* name, bool useUvs, bool needAlphaBlend, AAssetManager& assman)
+    void ShaderLoader::addShaderManualy(const char* name, bool useUvs, bool needAlphaBlend, AAssetManager* assman)
 #else
     void ShaderLoader::addShaderManualy(const char* name, bool useUvs, bool needAlphaBlend)
 #endif
 {
     ShaderProgram newShader;
-
+#ifdef __ANDROID__
+    loadSingleShader(name, newShader, useUvs, needAlphaBlend, assman);
+#else
     loadSingleShader(name, newShader, useUvs, needAlphaBlend);
+#endif
     shaders.push_back(newShader);
 
 }
@@ -152,7 +161,7 @@ void ShaderLoader::destroy()
 }
 
 #ifdef __ANDROID__
-void ShaderLoader::loadSingleShader(const char* name, ShaderProgram& shader, bool useUvs, bool needAlphaBlend, AAssetManager& assman)
+void ShaderLoader::loadSingleShader(const char* name, ShaderProgram& shader, bool useUvs, bool needAlphaBlend, AAssetManager* assman)
 #else
 void ShaderLoader::loadSingleShader(const char* name, ShaderProgram& shader, bool useUvs, bool needAlphaBlend)
 #endif
@@ -172,7 +181,7 @@ void ShaderLoader::loadSingleShader(const char* name, ShaderProgram& shader, boo
         printf("Loading vertex shader %s...\n", buf);
 
 #ifdef __ANDROID__
-        vert.loadGL(VERTEX_SHADER, buf, AssetManager);
+        vert.loadGL(VERTEX_SHADER, buf, assman);
 #else
         vert.loadGL(VERTEX_SHADER, buf);
 #endif
@@ -180,7 +189,7 @@ void ShaderLoader::loadSingleShader(const char* name, ShaderProgram& shader, boo
         sprintf(buf, "shaders/%s.frag", name);
         printf("Loading fragment shader %s...\n", buf);
 #ifdef __ANDROID__
-        frag.loadGL(FRAGMENT_SHADER, buf, AssetManager);
+        frag.loadGL(FRAGMENT_SHADER, buf, assman);
 #else
         frag.loadGL(FRAGMENT_SHADER, buf);
 #endif
@@ -215,7 +224,7 @@ void ShaderLoader::loadSingleShader(const char* name, ShaderProgram& shader, boo
 
         sprintf(buf, "shaders/%s_vert.spv", name);
 #ifdef __ANDROID__
-        vert.loadVK(VERTEX_SHADER, buf, vulkanDevice, AssetManager);
+        vert.loadVK(VERTEX_SHADER, buf, vulkanDevice, assman);
 #else
         vert.loadVK(VERTEX_SHADER, buf, vulkanDevice);
 #endif
@@ -224,7 +233,7 @@ void ShaderLoader::loadSingleShader(const char* name, ShaderProgram& shader, boo
 
         sprintf(buf, "shaders/%s_frag.spv", name);
 #ifdef __ANDROID__
-        frag.loadVK(FRAGMENT_SHADER, buf, vulkanDevice, AssetManager);
+        frag.loadVK(FRAGMENT_SHADER, buf, vulkanDevice, assman);
 #else
         frag.loadVK(FRAGMENT_SHADER, buf, vulkanDevice);
 #endif
