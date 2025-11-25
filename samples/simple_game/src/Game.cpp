@@ -1,72 +1,32 @@
 #include <vector>
-#include <algorithm>
 #include <cwchar>
 #include "Game.h"
+#include <disarray/audio/OggStream.h>
+#include <disarray/audio/SoundSystem.h>
+#include <disarray/SpriteBatcher.h>
+#include <disarray/ShaderLoader.h>
+#include <disarray/SysConfig.h>
+#include <disarray/TouchData.h>
+#include <disarray/gui/Text.h>
 
-const int boardX = 16;
-const int boardY = 445;
-const int tileSize = 64;
-
-//--------------------------------------
-void Game::loadConfig(){
+void Game::loadConfig()
+{
 #ifndef __ANDROID__
     char buf[1024];
-    sprintf(buf, "%s/settings.cfg", DocumentPath);
-    sys.load(buf);
-    ScreenWidth = sys.ScreenWidth;
-    ScreenHeight = sys.ScreenHeight;
-    windowed = sys.useWindowed;
-
-    sys.write(buf);
-#endif
-
-}
-//---------------------------------------
-void Game::LoadShader(ShaderProgram* shader, const char* name)
-{
-    shader->create(false);
-
-    char error[1024];
-    char buf[512];
-
-    Shader vert;
-    Shader frag;
-
-    printf("Loading vertex shader...\n");
-    sprintf(buf, "shaders/%s.vert", name);
-#ifdef __ANDROID__
-    vert.loadGL(VERTEX_SHADER, buf, AssetManager);
-#else
-    vert.loadGL(VERTEX_SHADER, buf);
-#endif
-
-    printf("Loading fragment shader...\n");
-    sprintf(buf, "shaders/%s.frag", name);
-#ifdef __ANDROID__
-    frag.loadGL(FRAGMENT_SHADER, buf, AssetManager);
-#else
-    frag.loadGL(FRAGMENT_SHADER, buf);
-#endif
-
-    shader->attach(vert);
-    shader->attach(frag);
-    shader->link();
-
-    shader->getLog(error, 1024);
-    if (strlen(error)) {
-#ifdef __ANDROID__
-        LOGI("--%s--", buf);
-        LOGI("%s", error);
+    sprintf(buf, "%s/settings.cfg", documentPath);
+    if (!sys->load(buf))
+    {
+        sys->ScreenWidth = 640;
+        sys->ScreenHeight = 360;
+        sys->useWindowed = true;
     }
-    LOGI("---------------");
-#else
-        printf("--%s--\n", buf);
-        puts(error);
-    }
-    puts("-----------");
+    screenWidth = sys->ScreenWidth;
+    screenHeight = sys->ScreenHeight;
+    windowed = sys->useWindowed;
+
+    sys->write(buf);
 #endif
 }
-
 
 void Game::restartGame()
 {
@@ -84,7 +44,6 @@ void Game::restartGame()
     runLava = false;
     lavaTimer = 0;
     lavaCanGoRight = true;
-
 }
 
 
@@ -102,7 +61,7 @@ void Game::initMap()
         }
 
         ladderX = tmp;
-        
+
         for (uint8_t i = 0; i < MAPWIDTH; ++i)
         {
             if ( i == ladderX)
@@ -113,14 +72,11 @@ void Game::initMap()
             {
                 gameMap[j * MAPWIDTH + i] = 7;
             }
-
         }
-
     }
 
     gameMap[0] = 0;
     gameMap[1] = 0;
-
 
     for (uint8_t i = 2; i < MAPWIDTH; ++i)
     {
@@ -134,44 +90,40 @@ void Game::init(){
 
     srand(time(0));
 
-#ifndef __ANDROID__
     LoadExtensions();
-#endif
-    printf("Creating shaders...\n");
-   
-    LoadShader(&defaultShader, "default");
-    LoadShader(&colorShader, "justcolor");
+    printf("Loading shaders...\n");
+    if (!shaders->load("shaders", "list.xml"))
+    {
+        printf("NO SHADERS!\n");
+    }
 
-    colorShader.use();
+    printf("done.\n");
+    shaders->shaders[1].use();
 
     glClearColor(0.5f, 0.5f, 0.6f, 1.0f);
     glEnable(GL_TEXTURE_2D);
     glDepthFunc(GL_LEQUAL);
-
     glEnable (GL_BLEND);
 
 
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    MatrixOrtho(0.0, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0, -400, 400, OrthoMatrix);
+    MatrixOrtho(0.0, screenWidth, screenHeight, 0.0, -400, 400, orthoMatrix);
 
     SoundSystem* ss = SoundSystem::getInstance();
     ss->init(0);
-#ifndef __ANDROID__
-    ss->loadFiles("sfx", "list.xml");
-    pics.load("pics/imagesToLoad.xml");
-    music.open("music/music.ogg");
-#else
-    ss->loadFiles("sfx", "list.xml", AssetManager);
-    pics.load("pics/imagesToLoad.xml", AssetManager);
-    music.open("music/music.ogg", AssetManager);
-#endif
-    ss->setVolume(0, sys.soundFXVolume);
+    if (!ss->loadFiles("sfx/", "list.xml"))
+    {
+        printf("SFXs ARE MISSING!\n");
+    }
+    pics->load("pics/imagesToLoad.xml");
+    music->open("music/music.ogg");
+    ss->setVolume(0, 100);//sys->soundFXVolume);
     ss->setupListener(Vector3D(0, 0, 0).v, Vector3D(0, 0, 0).v);
 
     
-    music.setVolume(sys.musicVolume);
-    music.playback();
+    music->setVolume(sys->musicVolume);
+    music->playback();
 
 
     useAccel = false;
@@ -184,78 +136,54 @@ void Game::init(){
 }
 
 //-------------------
-void Game::render(){
-    
+void Game::render()
+{
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    int MatrixID = defaultShader.getUniformID("ModelViewProjection");
+    int MatrixID = shaders->shaders[0].getUniformID("ModelViewProjection");
     FlatMatrix identity;
     MatrixIdentity(identity.m);
 
-    int MatrixID2 = colorShader.getUniformID("ModelViewProjection");
-    modelMatrixId = modelShader.getUniformID("ModelViewProjection");
+    int MatrixID2 = shaders->shaders[1].getUniformID("ModelViewProjection");
 
-    FlatMatrix finalM = identity * OrthoMatrix;
+    FlatMatrix finalM = identity * orthoMatrix;
     glUniformMatrix4fv(MatrixID, 1, GL_FALSE, finalM.m);
     glUniformMatrix4fv(MatrixID2, 1, GL_FALSE, finalM.m);
 
-
     Render2D();
-    pics.drawBatch(&colorShader, &defaultShader, 666);
+    pics->drawBatch(&shaders->shaders[1], &shaders->shaders[0], 666);
 }
 
 //---------------------
-void Game::logic(){
-#ifndef __ANDROID__
-    if (music.playing())
-        music.update();
-#endif
+void Game::logic()
+{
+
+    if (music->playing())
+    {
+        music->update();
+    }
 
     GameLoop();
-    
-    touches.oldDown.clear();
-    for (unsigned long i = 0; i < touches.down.size(); i++ ){
-        Vector3D v = touches.down[i];
-        touches.oldDown.push_back(v);
+
+    touches->oldDown.clear();
+    for (unsigned long i = 0; i < touches->down.size(); i++)
+    {
+        Vector3D v = touches->down[i];
+        touches->oldDown.push_back(v);
     }
-    touches.up.clear();
-    touches.down.clear();
-    touches.move.clear();
+    touches->up.clear();
+    touches->down.clear();
+    touches->move.clear();
 }
 //-------------------------
-void Game::destroy(){
-
-    music.release();
-    SoundSystem* ss = SoundSystem::getInstance();
-    ss->freeData();
-    ss->exit();
-
-    pics.destroy();
-
-    defaultShader.destroy();
-}
-
-//==================================================
-int Game::FPS (void)
+void Game::destroy()
 {
-    static int ctime = 0, FPS = 0, frames = 0, frames0 = 0;
-
-    if ((int)TimeTicks >= ctime) 
-    {
-        FPS = frames - frames0;
-        ctime = (int)TimeTicks + 1000;
-        frames0 = frames;
-    }
-
-    frames = frames+1;
-    return FPS;
+    GameProto::destroy();
 }
-
 
 //---------------------------
 void Game::onBack()
 {
-
 }
 
 //------------------------------------
@@ -264,7 +192,7 @@ void Game::GameLoop()
     if (gameMap[playerY / 8 * MAPWIDTH + playerX / 8] == 9)
     {
         lavaSpeed = 100;
-        
+
         --lives;
         if (lives == 0)
         {
@@ -327,12 +255,10 @@ void Game::GameLoop()
 
     }
 
-    
     if (playerFrameTimer >= 5)
     {
         playerFrameTimer = 0;
         playerFrame = (playerFrame == 1) ? 2 : 1;
-        
     }
 
     if (Keys[4] == 1 && !isPlayerMining)
@@ -408,7 +334,7 @@ void Game::GameLoop()
                     lavaCanGoRight = false;
                     lavaPosX = lavaTurnX;
                 }
-                
+
                 if (gameMap[lavaPosY * MAPWIDTH + lavaPosX - 1] == 0 || gameMap[lavaPosY * MAPWIDTH + lavaPosX - 1] == 11
                     || gameMap[lavaPosY * MAPWIDTH + lavaPosX - 1] == 9)
                 {
@@ -427,8 +353,6 @@ void Game::GameLoop()
         }
     }
 
-
-
 }
 
 //---------------------------
@@ -438,7 +362,7 @@ void Game::Render2D()
     {
         for (uint8_t j = 0; j < 7; ++j)
         {
-            pics.draw(1, i * 40, j * 40, gameMap[j * MAPWIDTH + i], false, 5.f, 5.f);
+            pics->draw(1, i * 40, j * 40, gameMap[j * MAPWIDTH + i], false, 5.f, 5.f);
         }
     }
 
@@ -449,26 +373,18 @@ void Game::Render2D()
         scaleX = -5;
     }
 
-    pics.draw(1, playerX * 5, playerY * 5, playerFrame, true, scaleX, 5.f);
+    pics->draw(1, playerX * 5, playerY * 5, playerFrame, true, scaleX, 5.f);
     DrawDebugText();
 }
 
 //----------------------------
-void Game::DrawDebugText(){
-
+void Game::DrawDebugText()
+{
     char buf[256];
-    sprintf(buf, "FPS:%d", FPS());
-    WriteText(580, 2, pics, 0, buf, 0.8f, 0.8f);
-    sprintf(buf, "lavaPosX %u", lavaPosX);
-    WriteText(520, 20, pics, 0, buf, 0.8f, 0.8f);
-    sprintf(buf, "lavaPosy %u", lavaPosY);
-    WriteText(520, 40, pics, 0, buf, 0.8f, 0.8f);
-    sprintf(buf, "lavaCanGoRight %d", lavaCanGoRight);
-    WriteText(520, 60, pics, 0, buf, 0.8f, 0.8f);
-    sprintf(buf, "lavaSpeed %u", lavaSpeed);
-    WriteText(520, 80, pics, 0, buf, 0.8f, 0.8f);
+    sprintf(buf, "FPS:%d", fps());
+    WriteText(580, 2, *pics, 0, buf, 0.8f, 0.8f);
     sprintf(buf, "lives %u", lives);
-    WriteText(520, 120, pics, 0, buf, 0.8f, 0.8f);
+    WriteText(520, 120, *pics, 0, buf, 0.8f, 0.8f);
     sprintf(buf, "score %u", score);
-    WriteText(520, 140, pics, 0, buf, 0.8f, 0.8f);
+    WriteText(520, 140, *pics, 0, buf, 0.8f, 0.8f);
 }

@@ -53,9 +53,9 @@ public:
 
     bool init(ALCchar* dev);
 #ifdef __ANDROID__
-    void loadFiles(const char* BasePath, const char* list, AAssetManager* assman);
+    bool loadFiles(const char* BasePath, const char* list, AAssetManager* assman);
 #else
-    void loadFiles(const char* BasePath, const char* list);
+    bool loadFiles(const char* BasePath, const char* list);
 #endif
     void setupListener(float * pos, float * orientation);
     void setSoundPos(unsigned int index, float * pos);

@@ -25,49 +25,48 @@
     class AAssetManager;
 #endif
 
-class OggStream{
-    
+class OggStream
+{
+
     FILE*           oggFile;
     OggVorbis_File  oggStream;
     vorbis_info*    vorbisInfo;
-    
+
     ALuint buffers[BUFFERCOUNT];
     ALuint source;
     ALenum format;
-    
-    float volume;
-public:
 
-        //opens stream from ogg file
-        OggStream()
-        {
-            oggFile = nullptr;
-            vorbisInfo = nullptr;
-            source = 0;
-            memset(&oggStream, 0, sizeof(OggVorbis_File));
-            memset(buffers, 0 , sizeof(ALuint)*BUFFERCOUNT);
-            volume = 0.2f;
-        }
+    float volume;
+    public:
+
+    //opens stream from ogg file
+    OggStream()
+    {
+        oggFile = nullptr;
+        vorbisInfo = nullptr;
+        source = 0;
+        memset(&oggStream, 0, sizeof(OggVorbis_File));
+        memset(buffers, 0 , sizeof(ALuint)*BUFFERCOUNT);
+        volume = 0.2f;
+    }
 
 #ifdef __ANDROID__
-        bool open(const char* path, AAssetManager* assman);
+    bool open(const char* path, AAssetManager* assman);
 #else
-        bool open(const char* path);
+    bool open(const char* path);
 #endif
-        void release();
-        bool playback();
-        bool playing();
-        bool update();
-        void stop();
-        void setVolume(float vol);
+    void release();
+    bool playback();
+    bool playing();
+    bool update();
+    void stop();
+    void setVolume(float vol);
 
     protected:
 
-       long  stream(char* decbuff);
-        void empty();
-        void check(const char* place);
-
-           
+    long  stream(char* decbuff);
+    void empty();
+    void check(const char* place);
 };
 
 

@@ -44,6 +44,8 @@ add_library(disarray
         src/audio/OggStream.cpp
         src/audio/SoundSystem.cpp
         src/AndroidFile.cpp
+        src/ShaderLoader.cpp
+        src/GameProto.cpp
 
 )
 if (CMAKE_SYSTEM_NAME STREQUAL "Android")

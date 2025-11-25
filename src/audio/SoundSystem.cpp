@@ -146,8 +146,10 @@ bool SoundSystem::init(ALCchar* dev){
     return true;
 }
 //---------------------------------------
-void SoundSystem::exit(){
-    if (alcdev){
+void SoundSystem::exit()
+{
+    if (alcdev)
+    {
         alccont=alcGetCurrentContext();
         alcdev=alcGetContextsDevice(alccont);
         alcMakeContextCurrent(0);
@@ -158,9 +160,9 @@ void SoundSystem::exit(){
 }
 //--------------------------------------
 #ifdef __ANDROID__
-void SoundSystem::loadFiles(const char *BasePath, const char *list, AAssetManager* assman)
+bool SoundSystem::loadFiles(const char *BasePath, const char *list, AAssetManager* assman)
 #else
-void SoundSystem::loadFiles(const char *BasePath, const char *list)
+bool SoundSystem::loadFiles(const char *BasePath, const char *list)
 #endif
 {
     char buf[255];
@@ -174,48 +176,51 @@ void SoundSystem::loadFiles(const char *BasePath, const char *list)
     bool result = sfxList.load(buf, assman);
 #endif
 
-    if (result)
+    if (!result)
     {
-        XmlNode *mainnode = sfxList.root.getNode(L"Sounds");
+        return false;
+    }
 
-        int soundCount = 0;
+    XmlNode *mainnode = sfxList.root.getNode(L"Sounds");
 
-        if (mainnode)
+    int soundCount = 0;
+
+    if (mainnode)
+    {
+        soundCount = mainnode->childrenCount();
+    }
+
+    for (int i = 0; i < soundCount; ++i)
+    {
+        XmlNode *node = mainnode->getNode(i);
+
+        if (node)
         {
-            soundCount = mainnode->childrenCount();
-        }
-
-        for (int i = 0; i < soundCount; ++i)
-        {
-            XmlNode *node = mainnode->getNode(i);
-
-            if (node)
+            for (int j = 0; j < (int)node->attributeCount(); ++j)
             {
-                for (int j = 0; j < (int)node->attributeCount(); ++j)
+                XmlAttribute* attr = node->getAttribute(j);
+                SoundData data;
+                data.name[0] = 0;
+
+                if (attr)
                 {
-                    XmlAttribute* attr = node->getAttribute(j);
-                    SoundData data;
-                    data.name[0] = 0;
-
-                    if (attr)
+                    if (wcscmp(attr->getName(), L"src") == 0)
                     {
-                        if (wcscmp(attr->getName(), L"src") == 0)
-                        {
-                            wchar_t* value = attr->getValue();
+                        wchar_t* value = attr->getValue();
 
-                            if (value)
-                            {
-                                sprintf(data.name, "%ls", value);
-                                audioInfo.push_back(data);
-                            }
+                        if (value)
+                        {
+                            sprintf(data.name, "%ls", value);
+                            audioInfo.push_back(data);
                         }
                     }
                 }
             }
         }
-
-        sfxList.destroy();
     }
+
+    sfxList.destroy();
+
 
     buffers = new ALuint[audioInfo.size()];
     alGenBuffers(audioInfo.size(), buffers);
@@ -262,17 +267,24 @@ void SoundSystem::loadFiles(const char *BasePath, const char *list)
         alSourcei(sources[i], AL_SOURCE_RELATIVE, AL_TRUE);
     }
 
+    return true;
+
 }
 
 //--------------------------------------------
 void SoundSystem::playsound(unsigned int index, bool loop)
 {
 
-    if (index < audioInfo.size()){
+    if (index < audioInfo.size())
+    {
         if (loop)
+        {
             alSourcei(sources[index],AL_LOOPING,AL_TRUE);
+        }
         else
+        {
             alSourcei(sources[index],AL_LOOPING,AL_FALSE);
+        }
 
         alSourcePlay(sources[index]);
     }
