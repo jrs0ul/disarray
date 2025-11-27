@@ -12,6 +12,16 @@
 #include "Shader.h"
 
 
+const uint8_t MAX_UNIFORM_SIZE = 255;
+const uint8_t MAX_UNIFORM_NAME = 255;
+
+struct DUniform
+{
+    char    name[MAX_UNIFORM_NAME];
+    uint8_t data[MAX_UNIFORM_SIZE];
+    uint8_t size;
+};
+
 
 class ShaderProgram
 {
@@ -52,6 +62,10 @@ public:
 
     int  getUniformID(const char* name);
     int  getAttributeID(const char* name);
+
+    //Push constants for vulkan, stuff that changes every frame
+    void pushConstants(std::vector<DUniform>& constants, VkCommandBuffer* vkCmd);
+    void updateUniforms(std::vector<DUniform>&  uniforms);
 
     VkPipelineLayout* getVkPipelineLayout() {return &vkPipelineLayout;}
 

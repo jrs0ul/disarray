@@ -380,3 +380,48 @@ int ShaderProgram::getAttributeID(const char* name)
 {
     return glGetAttribLocation(program, name);
 }
+
+void ShaderProgram::pushConstants(std::vector<DUniform>& constants, VkCommandBuffer* vkCmd)
+{
+    if (isVulkanShader)
+    {
+        uint8_t bigBuf[255];
+
+        size_t size = 0;
+        for (auto& con : constants)
+        {
+            memcpy(&bigBuf[size], con.data, con.size);
+            size += con.size;
+        }
+
+        vkCmdPushConstants(*vkCmd, *getVkPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, size, bigBuf);
+    }
+}
+
+void ShaderProgram::updateUniforms(std::vector<DUniform>& uniforms)
+{
+    for ( auto& uni : uniforms)
+    {
+        if (!isVulkanShader)
+        {
+            int loc = glGetUniformLocation(program, uni.name);
+            int nameLen = 0;
+            int dataSize = 0;
+            GLenum type;
+            glGetActiveUniform(program, loc, MAX_UNIFORM_NAME, &nameLen, &dataSize, &type, uni.name);
+
+            switch (type)
+            {
+                case GL_FLOAT_MAT4 : glUniformMatrix4fv(loc, 1, GL_FALSE, (float*)uni.data); break;
+                case GL_FLOAT : {float tim = 0; memcpy(&tim, uni.data, sizeof(float)); glUniform1f(loc, tim);} break;
+                /*case GL_FLOAT_VEC2 : glUniform2f(loc, 1, (float*)uni.data); break;
+                case GL_FLOAT_VEC3 : glUniform3f(loc, 1, (float*)uni.data); break;
+                case GL_FLOAT_VEC4 : glUniform4f(loc, 1, (float*)uni.data); break;*/
+            }
+        }
+        else
+        {
+
+        }
+    }
+}

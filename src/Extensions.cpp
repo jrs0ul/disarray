@@ -29,6 +29,7 @@ PFNGLLINKPROGRAMPROC                 glLinkProgram = 0;
 PFNGLGETPROGRAMIVPROC                glGetProgramiv = 0;
 PFNGLUSEPROGRAMPROC                  glUseProgram  = 0;
 PFNGLGETUNIFORMLOCATIONPROC          glGetUniformLocation = 0;
+PFNGLGETACTIVEUNIFORMPROC            glGetActiveUniform = 0;
 PFNGLGETATTRIBLOCATIONPROC           glGetAttribLocation = 0;
 PFNGLUNIFORM1FPROC                   glUniform1f = 0;
 PFNGLUNIFORM2FPROC                   glUniform2f = 0;
@@ -120,6 +121,8 @@ void LoadExtensions() {
                          SDL_GL_GetProcAddress("glUseProgram");
     glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)
                             SDL_GL_GetProcAddress("glGetUniformLocation");
+    glGetActiveUniform  = (PFNGLGETACTIVEUNIFORMPROC)
+                            SDL_GL_GetProcAddress("glGetActiveUniform");
     glGetAttribLocation = (PFNGLGETATTRIBLOCATIONPROC)
                             SDL_GL_GetProcAddress("glGetAttribLocation");
     glUniform1f  = (PFNGLUNIFORM1FPROC)SDL_GL_GetProcAddress("glUniform1f");
@@ -177,6 +180,7 @@ void UnloadExtensions() {
     glGetProgramiv       = 0;
     glUseProgram         = 0;
     glGetUniformLocation = 0;
+    glGetActiveUniform   = 0;
     glUniform1f          = 0;
     glUniform2f          = 0;
     glUniform3f          = 0;
