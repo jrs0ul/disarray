@@ -51,6 +51,7 @@ public:
 
     unsigned        screenWidth;
     unsigned        screenHeight;
+    bool            windowed;
     bool            works;
     bool            doRumble;
     bool            hasVulkan;
@@ -60,9 +61,13 @@ public:
     ~GameProto();
 
     virtual void init(bool useVulkan) = 0;
+    virtual void loadConfig(const char* path);
     virtual void render() = 0;
     virtual void logic() = 0;
     virtual void destroy();
+#ifdef __ANDROID__
+    virtual void onBack() = 0;
+#endif
 
     int fps();
 

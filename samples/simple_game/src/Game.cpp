@@ -7,23 +7,25 @@
 #include <disarray/TouchData.h>
 #include <disarray/gui/Text.h>
 
-void Game::loadConfig()
+enum ShaderEnmu
 {
-#ifndef __ANDROID__
-    char buf[1024];
-    sprintf(buf, "%s/settings.cfg", documentPath);
-    if (!sys->load(buf))
+    SH_UVCOLOR = 0,
+    SH_COLOR
+};
+
+void Game::loadConfig(const char* path)
+{
+    if (!sys->load(path))
     {
         sys->ScreenWidth = 640;
         sys->ScreenHeight = 360;
         sys->useWindowed = true;
+        sys->write(path);
     }
+
     screenWidth = sys->ScreenWidth;
     screenHeight = sys->ScreenHeight;
     windowed = sys->useWindowed;
-
-    sys->write(buf);
-#endif
 }
 
 void Game::restartGame()
@@ -95,16 +97,22 @@ void Game::init(bool useVulkan)
         printf("NO SHADERS!\n");
     }
 
-    shaders->shaders[1].use();
-
     glClearColor(0.5f, 0.5f, 0.6f, 1.0f);
-    glEnable(GL_TEXTURE_2D);
-    glDepthFunc(GL_LEQUAL);
     glEnable (GL_BLEND);
-
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     MatrixOrtho(0.0, screenWidth, screenHeight, 0.0, -400, 400, orthoMatrix);
+
+    DUniform u = {};
+    strcpy(u.name, "ModelViewProjection");
+    u.size = sizeof(float) * 16;
+    memcpy(u.data, orthoMatrix, u.size);
+    std::vector<DUniform> uniforms = {u};
+
+    shaders->shaders[SH_UVCOLOR].use();
+    shaders->shaders[SH_UVCOLOR].updateUniforms(uniforms);
+    shaders->shaders[SH_COLOR].use();
+    shaders->shaders[SH_COLOR].updateUniforms(uniforms);
 
     SoundSystem* ss = SoundSystem::getInstance();
     ss->init(0);
@@ -133,31 +141,41 @@ void Game::render()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    int MatrixID = shaders->shaders[0].getUniformID("ModelViewProjection");
-    FlatMatrix identity;
-    MatrixIdentity(identity.m);
-
-    int MatrixID2 = shaders->shaders[1].getUniformID("ModelViewProjection");
-
-    FlatMatrix finalM = identity * orthoMatrix;
-    glUniformMatrix4fv(MatrixID, 1, GL_FALSE, finalM.m);
-    glUniformMatrix4fv(MatrixID2, 1, GL_FALSE, finalM.m);
+    const uint32_t REAL_TILE_SIZE = TILE_SCALE * TILE_SIZE;
 
     for (uint8_t i = 0; i < MAPWIDTH; ++i)
     {
         for (uint8_t j = 0; j < MAPHEIGHT; ++j)
         {
-            pics->draw(1, i * 40, j * 40, gameMap[j * MAPWIDTH + i], false, (float)TILE_SCALE, (float)TILE_SCALE);
+            pics->draw(1,
+                       i * REAL_TILE_SIZE,
+                       j * REAL_TILE_SIZE,
+                       gameMap[j * MAPWIDTH + i],
+                       false,
+                       (float)TILE_SCALE,
+                       (float)TILE_SCALE);
         }
     }
 
     float scaleX = (float)((flipPlayer) ? -TILE_SCALE : TILE_SCALE);
 
-    pics->draw(1, playerX * TILE_SCALE, playerY * TILE_SCALE, playerFrame, true, scaleX, (float)TILE_SCALE);
-    DrawDebugText();
+    pics->draw(1,
+               playerX * TILE_SCALE,
+               playerY * TILE_SCALE,
+               playerFrame,
+               true,
+               scaleX,
+               (float)TILE_SCALE);
 
+    char buf[256];
+    sprintf(buf, "FPS:%d", fps());
+    WriteText(580, 2, *pics, 0, buf, 0.8f, 0.8f);
+    sprintf(buf, "lives %u", lives);
+    WriteText(520, 120, *pics, 0, buf);
+    sprintf(buf, "score %u", score);
+    WriteText(520, 140, *pics, 0, buf);
 
-    pics->drawBatch(&shaders->shaders[1], &shaders->shaders[0], 666);
+    pics->drawBatch(&shaders->shaders[SH_COLOR], &shaders->shaders[SH_UVCOLOR], 666);
 }
 
 //---------------------
@@ -168,7 +186,7 @@ void Game::logic()
         music->update();
     }
 
-    GameLoop();
+    gameLoop();
 
     touches->oldDown.clear();
     touches->oldDown = touches->down;
@@ -176,14 +194,9 @@ void Game::logic()
     touches->down.clear();
     touches->move.clear();
 }
-//-------------------------
-void Game::destroy()
-{
-    GameProto::destroy();
-}
 
 //------------------------------------
-void Game::GameLoop()
+void Game::gameLoop()
 {
     if (gameMap[playerY / TILE_SIZE * MAPWIDTH + playerX / TILE_SIZE] == 9)
     {
@@ -203,13 +216,13 @@ void Game::GameLoop()
 
     if (!isPlayerMining)
     {
-
         if (keys[3] == 1)
         {
             if (playerX > 4 && gameMap[playerY / TILE_SIZE * MAPWIDTH + ((playerX - 5) / TILE_SIZE)] != 7 &&
-                    gameMap[playerY / TILE_SIZE * MAPWIDTH + ((playerX - 5) / TILE_SIZE)] != 8 && (playerY - 4) % 8 == 0)
+                 gameMap[playerY / TILE_SIZE * MAPWIDTH + ((playerX - 5) / TILE_SIZE)] != 8 &&
+                  (playerY - 4) % 8 == 0)
             {
-                playerX -= 1; 
+                playerX -= 1;
             }
 
             flipPlayer = true;
@@ -218,8 +231,10 @@ void Game::GameLoop()
 
         if (keys[2] == 1)
         {
-            if (playerX < MAPWIDTH * TILE_SIZE - 4 && gameMap[playerY / 8 * MAPWIDTH + ((playerX + 4) / TILE_SIZE)] != 7 &&
-                    gameMap[playerY / TILE_SIZE * MAPWIDTH + ((playerX + 4) / TILE_SIZE)] != 8 && (playerY - 4) % TILE_SIZE == 0)
+            if (playerX < MAPWIDTH * TILE_SIZE - 4 &&
+                 gameMap[playerY / TILE_SIZE * MAPWIDTH + ((playerX + 4) / TILE_SIZE)] != 7 &&
+                  gameMap[playerY / TILE_SIZE * MAPWIDTH + ((playerX + 4) / TILE_SIZE)] != 8 && 
+               (playerY - 4) % TILE_SIZE == 0)
             {
                 playerX += 1;
 
@@ -279,7 +294,8 @@ void Game::GameLoop()
 
             if (brickYToMine < MAPHEIGHT && brickXToMine < MAPWIDTH)
             {
-                if (gameMap[brickYToMine * MAPWIDTH + brickXToMine] != 9 && gameMap[brickYToMine * MAPWIDTH + brickXToMine] != 0)
+                if (gameMap[brickYToMine * MAPWIDTH + brickXToMine] != 9 &&
+                     gameMap[brickYToMine * MAPWIDTH + brickXToMine] != 0)
                 {
                     gameMap[brickYToMine * MAPWIDTH + brickXToMine] = (rand() % 10 == 9) ? TILE_SIZE : 0;
 
@@ -311,15 +327,19 @@ void Game::GameLoop()
         {
             lavaTimer = 0;
 
-            if ((gameMap[(lavaPosY + 1) * MAPWIDTH + lavaPosX] == 0 || gameMap[(lavaPosY + 1) * MAPWIDTH + lavaPosX] == 11
-                 || gameMap[(lavaPosY + 1) * MAPWIDTH + lavaPosX] == 9) && lavaPosY < MAPHEIGHT - 1)
+            if ((gameMap[(lavaPosY + 1) * MAPWIDTH + lavaPosX] == 0 ||
+                  gameMap[(lavaPosY + 1) * MAPWIDTH + lavaPosX] == 11 ||
+                   gameMap[(lavaPosY + 1) * MAPWIDTH + lavaPosX] == 9) &&
+                 lavaPosY < MAPHEIGHT - 1)
             {
                 ++lavaPosY;
                 lavaTurnX = lavaPosX;
                 lavaCanGoRight = true;
             }
-            else if ((gameMap[lavaPosY * MAPWIDTH + lavaPosX + 1] == 0 || gameMap[lavaPosY * MAPWIDTH + lavaPosX + 1] == 11
-                    || gameMap[lavaPosY * MAPWIDTH + lavaPosX + 1] == 9) && lavaPosX < MAPWIDTH - 1  && lavaCanGoRight)
+            else if ((gameMap[lavaPosY * MAPWIDTH + lavaPosX + 1] == 0 ||
+                       gameMap[lavaPosY * MAPWIDTH + lavaPosX + 1] == 11 ||
+                        gameMap[lavaPosY * MAPWIDTH + lavaPosX + 1] == 9) &&
+                     lavaPosX < MAPWIDTH - 1  && lavaCanGoRight)
             {
                 ++lavaPosX;
             }
@@ -331,8 +351,9 @@ void Game::GameLoop()
                     lavaPosX = lavaTurnX;
                 }
 
-                if (gameMap[lavaPosY * MAPWIDTH + lavaPosX - 1] == 0 || gameMap[lavaPosY * MAPWIDTH + lavaPosX - 1] == 11
-                    || gameMap[lavaPosY * MAPWIDTH + lavaPosX - 1] == 9)
+                if (gameMap[lavaPosY * MAPWIDTH + lavaPosX - 1] == 0 ||
+                     gameMap[lavaPosY * MAPWIDTH + lavaPosX - 1] == 11 ||
+                      gameMap[lavaPosY * MAPWIDTH + lavaPosX - 1] == 9)
                 {
                     if (lavaPosX > 0)
                     {
@@ -348,16 +369,4 @@ void Game::GameLoop()
             }
         }
     }
-}
-
-//----------------------------
-void Game::DrawDebugText()
-{
-    char buf[256];
-    sprintf(buf, "FPS:%d", fps());
-    WriteText(580, 2, *pics, 0, buf, 0.8f, 0.8f);
-    sprintf(buf, "lives %u", lives);
-    WriteText(520, 120, *pics, 0, buf);//, 1.0f, 0.8f);
-    sprintf(buf, "score %u", score);
-    WriteText(520, 140, *pics, 0, buf);//, 0.8f, 0.8f);
 }

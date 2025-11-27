@@ -10,25 +10,16 @@ class Game : public GameProto
 {
 
 public:
-    bool     windowed;
     unsigned globalKEY;
-    int      DebugMode;
 
-    void GameLoop();
-    void DrawDebugText();
+    void gameLoop();
 
-    Game()
-    {
-        windowed = false;
-        DebugMode = 0;
-    }
+    Game(){}
 
-    void init(bool useVulkan);
-    void loadConfig();
-    void logic();
-    void render();
-    void destroy() override;
-    void onBack(){}
+    void init(bool useVulkan) override;
+    void loadConfig(const char* path) override;
+    void logic() override;
+    void render() override;
 
 private:
     void restartGame();

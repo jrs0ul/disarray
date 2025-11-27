@@ -19,6 +19,7 @@ GameProto::GameProto()
     screenWidth = 640;
     screenHeight = 480;
     works = true;
+    windowed = false;
 
     dT = 1000.0f / 60.0f / 1000.0f;
     timeTicks = 0;
@@ -48,6 +49,10 @@ void GameProto::destroy()
     printf("Destroing shaders...\n");
     shaders->destroy();
 
+}
+
+void GameProto::loadConfig(const char* path)
+{
 }
 
 int GameProto::fps (void)

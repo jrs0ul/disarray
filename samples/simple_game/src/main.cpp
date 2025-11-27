@@ -10,22 +10,21 @@ Game game;
 
 static void  process_events()
 {
-
     SDL_Event event;
     float scaleX = 640.0f / game.screenWidth;
     float scaleY = 360.0f / game.screenHeight;
 
-    while( SDL_PollEvent( &event ) ) {
-
+    while( SDL_PollEvent( &event ) )
+    {
         switch( event.type ) {
 
         case SDL_KEYDOWN:{
 
             game.globalKEY = (char)event.key.keysym.scancode;
-            switch( event.key.keysym.sym ) {
+            switch( event.key.keysym.sym ) 
+            {
                 default:{} break;
                 case SDLK_q: { game.works = false;} break;
-                case SDLK_F1: {++game.DebugMode; if (game.DebugMode >= 3) game.DebugMode = 0;} 
             }
         } break;
         case SDL_MOUSEBUTTONUP:{
@@ -68,11 +67,13 @@ public:
 int main( int   argc, char *argv[] )
 {
     srand(time(0));
-    char buf[255];
+    char buf[256];
+    char finalBuf[1024];
     GetHomePath(buf);
     sprintf(game.documentPath, "%s.atari2600game", buf);
     MakeDir(game.documentPath);
-    game.loadConfig();
+    sprintf(finalBuf, "%s/settings.cfg", game.documentPath);
+    game.loadConfig(finalBuf);
 
     printf("%d %d\n", game.screenWidth, game.screenHeight);
     SDL.setMetrics(game.screenWidth, game.screenHeight);
@@ -85,8 +86,8 @@ int main( int   argc, char *argv[] )
     }
 
     SDL_GameController* gamepad = nullptr;
-
     SDL_InitSubSystem(SDL_INIT_JOYSTICK);
+
     if(SDL_NumJoysticks() > 0)
     {
         if (SDL_IsGameController(0))
