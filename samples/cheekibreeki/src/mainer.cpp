@@ -1,3 +1,11 @@
+#ifdef _WIN32
+#ifdef  _MSC_VER
+#define _CRT_SECURE_NO_DEPRECATE 1
+
+#pragma comment(lib,"disarray.lib")
+#endif
+#endif
+
 #include <ctime>
 #include "Game.h"
 #include <disarray/SDLVideo.h>

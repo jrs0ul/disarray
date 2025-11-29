@@ -1,5 +1,5 @@
-#include "MathTools.h"
-#include "Matrix.h"
+#include <disarray/MathTools.h>
+#include <disarray/Matrix.h>
  
 #include <cmath>
 #include <cstdio>
@@ -145,7 +145,7 @@ bool CollisionLineSegmentLineSegment(float line1X1, float line1Y1, float line1X2
 
 
 //-------------------------------------------------------------------
-Vector3D MakeVector(float speedx, float speedy, float _angle ){
+Vector3D MakeVectorM(float speedx, float speedy, float _angle ){
     Matrix rot;
     Vector3D pn(speedx, speedy, 0);
     MatrixRotationAxis(_angle, Vector3D(0,0,-1), rot);

@@ -412,8 +412,12 @@ void Game::DrawChain()
     glDisable(GL_TEXTURE_2D);
     shaders->shaders[1].use();
 
-    float verts[chain.count() * 12];
-    float colors[chain.count() * 4 * 6];
+	const uint32_t chainSize = chain.count();
+	const uint32_t vertexCount = chainSize * 6;
+	const uint32_t colorCount = chainSize * 6 * 4;
+
+    float* verts = new float[vertexCount*100];
+    float* colors = new float[colorCount*100];
 
     for (int i = 1; i < (int)chain.count(); ++i)
     {
@@ -427,6 +431,8 @@ void Game::DrawChain()
 
         if (chain[i - 1].y == chain[i].y)
         {
+
+			assert(i * 12 + 11 < vertexCount);
             verts[i * 12] = boardX + chain[i - 1].x * tileSize + 32;
             verts[i * 12 + 1] = boardY + chain[i - 1].y * tileSize + 32 - halfSize;
 
@@ -447,6 +453,8 @@ void Game::DrawChain()
         }
         else
         {
+			assert(i * 12 + 11 < vertexCount);
+
             verts[i * 12] = boardX + chain[i - 1].x * tileSize + 32 - halfSize;
             verts[i * 12 + 1] = boardY + chain[i - 1].y * tileSize + 32;
 
@@ -466,6 +474,8 @@ void Game::DrawChain()
             verts[i * 12 + 11] = verts[i * 12 + 5]; 
 
         }
+
+		assert(i * 24 + 23 < colorCount);
 
         colors[i * 24] = 1.f;
         colors[i * 24 + 1] = 0.f;
@@ -514,6 +524,10 @@ void Game::DrawChain()
     glDisableVertexAttribArray(ColorAttribID);
     glDisableVertexAttribArray(attribID);
     glEnable(GL_TEXTURE_2D);
+
+    delete[] colors;
+	delete[] verts;
+	
 }
 
 //----------------------------------------

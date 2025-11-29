@@ -1,5 +1,5 @@
-#include "Button.h"
-#include "Text.h"
+#include <disarray/gui/Button.h>
+#include <disarray/gui/Text.h>
 
 
 void Button::draw(PicsContainer& pics,

@@ -20,7 +20,7 @@ bool CollisionLineSegmentLineSegment(float line1X1, float line1Y1, float line1X2
                                      float line2X1, float line2Y1, float line2X2, float line2Y2,
                                      float* resR = nullptr, float* resS = nullptr);
 
-Vector3D MakeVector(float speedx, float speedy, float _angle );
+Vector3D MakeVectorM(float speedx, float speedy, float _angle );
 
 Vector3D Vec2Reflection(Vector3D& vector, Vector3D& plane);
 
