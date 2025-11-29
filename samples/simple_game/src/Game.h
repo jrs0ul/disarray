@@ -10,8 +10,6 @@ class Game : public GameProto
 {
 
 public:
-    unsigned globalKEY;
-
     void gameLoop();
 
     Game(){}
