@@ -62,10 +62,12 @@ void GameProto::loadConfig(const char* path,
     sys->renderIdx = initialRenderIdx;
     sys->useWindowed = initialFullscreen;
 
+#ifndef __ANDROID__
     if (!sys->load(path))
     {
         sys->write(path);
     }
+#endif
 
     screenWidth = sys->ScreenWidth;
     screenHeight = sys->ScreenHeight;
