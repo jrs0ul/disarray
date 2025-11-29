@@ -36,6 +36,7 @@ add_library(disarray
         src/SpriteBatcher.cpp
         src/Image.cpp
         src/RenderTexture.cpp
+        src/rm2.cpp
         src/VulkanVideo.cpp
         src/SDLVideo.cpp
         src/Extensions.cpp

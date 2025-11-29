@@ -1,0 +1,6 @@
+<xml>
+<Shaders>
+<Shader name="default" />
+<Shader name="justcolor" />
+<Shader name="model" />
+</Shaders>

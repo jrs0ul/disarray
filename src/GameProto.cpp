@@ -67,6 +67,10 @@ void GameProto::loadConfig(const char* path,
         sys->write(path);
     }
 
+    screenWidth = sys->ScreenWidth;
+    screenHeight = sys->ScreenHeight;
+    windowed = sys->useWindowed;
+
 }
 
 int GameProto::fps (void)
