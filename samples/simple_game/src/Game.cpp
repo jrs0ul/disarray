@@ -13,15 +13,13 @@ enum ShaderEnmu
     SH_COLOR
 };
 
-void Game::loadConfig(const char* path)
+void Game::loadConfig(const char* path,
+                      uint32_t initialWidth,
+                      uint32_t initialHeight,
+                      bool initialFullscreen,
+                      int initialRendererIdx)
 {
-    if (!sys->load(path))
-    {
-        sys->ScreenWidth = 640;
-        sys->ScreenHeight = 360;
-        sys->useWindowed = true;
-        sys->write(path);
-    }
+    GameProto::loadConfig(path, initialWidth, initialHeight, initialFullscreen, initialRendererIdx);
 
     screenWidth = sys->ScreenWidth;
     screenHeight = sys->ScreenHeight;
@@ -103,10 +101,7 @@ void Game::init(bool useVulkan)
 
     MatrixOrtho(0.0, screenWidth, screenHeight, 0.0, -400, 400, orthoMatrix);
 
-    DUniform u = {};
-    strcpy(u.name, "ModelViewProjection");
-    u.size = sizeof(float) * 16;
-    memcpy(u.data, orthoMatrix, u.size);
+    DUniform u("ModelViewProjection", (void*)orthoMatrix, sizeof(float) * 16);
     std::vector<DUniform> uniforms = {u};
 
     shaders->shaders[SH_UVCOLOR].use();

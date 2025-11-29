@@ -51,12 +51,22 @@ void GameProto::destroy()
 
 }
 
-void GameProto::loadConfig(const char* path, uint32_t initialWidth, uint32_t initialHeight, int initialRenderIdx)
+void GameProto::loadConfig(const char* path,
+                           uint32_t initialWidth,
+                           uint32_t initialHeight,
+                           bool     initialFullscreen,
+                           int initialRenderIdx)
 {
     sys->ScreenWidth = initialWidth;
     sys->ScreenHeight = initialHeight;
     sys->renderIdx = initialRenderIdx;
-    sys->load(path);
+    sys->useWindowed = initialFullscreen;
+
+    if (!sys->load(path))
+    {
+        sys->write(path);
+    }
+
 }
 
 int GameProto::fps (void)

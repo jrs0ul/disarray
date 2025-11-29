@@ -44,11 +44,12 @@ disarray::disarray(GameProto* ng)
 void disarray::setupPC(SDLVideo* sdl,
                        uint32_t initialWidth,
                        uint32_t initialHeight,
+                       bool     initialFullscreen,
                        const char* configPath,
                        const char* title,
                        bool initialUseVulkan)
 {
-    game->loadConfig(configPath, initialWidth, initialHeight, initialUseVulkan);
+    game->loadConfig(configPath, initialWidth, initialHeight, initialFullscreen, initialUseVulkan);
     sdl->setMetrics(game->screenWidth, game->screenHeight);
 
     if (!sdl->initWindow(title, "icon.bmp", game->windowed, (bool)game->sys->renderIdx))

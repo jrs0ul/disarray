@@ -65,7 +65,11 @@ public:
     ~GameProto();
 
     virtual void init(bool useVulkan) = 0;
-    virtual void loadConfig(const char* path, uint32_t initialWidth, uint32_t initialHeight, int initialRenderIdx);
+    virtual void loadConfig(const char* path,
+                            uint32_t initialWidth,
+                            uint32_t initialHeight,
+                            bool     initialFullscreen,
+                            int initialRenderIdx);
     virtual void render() = 0;
     virtual void logic() = 0;
     virtual void destroy();

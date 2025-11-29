@@ -17,7 +17,11 @@ public:
     Game(){}
 
     void init(bool useVulkan) override;
-    void loadConfig(const char* path) override;
+    void loadConfig(const char* path,
+                    uint32_t initialWidth,
+                    uint32_t initialHeight,
+                    bool initialFullscreen,
+                    int initialRendererIdx) override;
     void logic() override;
     void render() override;
 
