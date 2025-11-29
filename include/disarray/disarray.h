@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 class GameProto;
 class SDLVideo;
 struct _SDL_GameController;
@@ -11,13 +13,23 @@ class disarray
     _SDL_GameController* gamepad;
 
 public:
-    disarray(GameProto* ng, _SDL_GameController* controller);
+    disarray(GameProto* ng);
 
-    void whileLoopPC(SDLVideo* sdl);
-    void whileLoopAndroid();
+    void setupPC(SDLVideo* SDL,
+                 uint32_t initialWidth,
+                 uint32_t initialHeight,
+                 const char* configPath,
+                 const char* windowTitle,
+                 bool initialUseVulkan);
+
+    void runGamePC(SDLVideo* sdl);
+    void runGameAndroid();
 
     void handleInputPC();
     void handleInputAndroid();
+
+    void processEventsPc();
+    void processEventsAndroid();
 
     virtual void otherWhileLoopActivities() = 0;
 

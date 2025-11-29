@@ -15,18 +15,20 @@
 const uint8_t MAX_UNIFORM_SIZE = 255;
 const uint8_t MAX_UNIFORM_NAME = 255;
 
+//shader uniform variable
 struct DUniform
 {
     char    name[MAX_UNIFORM_NAME];
     uint8_t data[MAX_UNIFORM_SIZE];
     uint8_t size;
+
+    DUniform(const char* newName, void* newData, uint8_t dataSize);
 };
 
 
 class ShaderProgram
 {
    //vulkan stuff
-
 
     std::vector<VkPipelineShaderStageCreateInfo> vkShaderStages;
     VkPipeline                                   vkPipeline;

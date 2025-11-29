@@ -1,10 +1,35 @@
 #include <disarray/disarray.h>
 #include <disarray/GameProto.h>
+#include <disarray/SysConfig.h>
+#include <disarray/TouchData.h>
 #ifndef __ANDROID__
 #include <disarray/SDLVideo.h>
 #endif
 
-disarray::disarray(GameProto* ng, _SDL_GameController* controller)
+#ifdef _WIN32
+    #ifdef _MSC_VER
+        #include <SDL_opengl.h>
+    #else
+        #include <SDL2/SDL_opengl.h>
+    #endif
+#else
+    #ifdef __ANDROID__
+            #include <GLES2/gl2.h>
+            #include <GLES2/gl2ext.h>
+    #else
+            #include <SDL2/SDL_opengl.h>
+    #endif
+#endif
+
+
+const char* GamePadTypes[] = {"Unknown", "XBOX 360", "XBOX One", "Playstation 3",
+                              "Playstation 4", "Nintendo Switch PRO", "Virtual",
+                              "Playstation 5", "Amazon Luna", "Google Stadia",
+                              "NVIDIA Shield", "Nintendo Switch Joycon LEFT",
+                              "Nintendo Switch Joycon RIGHT", "Nintendo Switch Joycon PAIR"};
+
+
+disarray::disarray(GameProto* ng)
 {
     game = nullptr;
 
@@ -12,12 +37,54 @@ disarray::disarray(GameProto* ng, _SDL_GameController* controller)
     {
         game = ng;
     }
-
-    gamepad = controller;
 }
 
+
 #ifndef __ANDROID__
-void disarray::whileLoopPC(SDLVideo* sdl)
+void disarray::setupPC(SDLVideo* sdl,
+                       uint32_t initialWidth,
+                       uint32_t initialHeight,
+                       const char* configPath,
+                       const char* title,
+                       bool initialUseVulkan)
+{
+    game->loadConfig(configPath, initialWidth, initialHeight, initialUseVulkan);
+    sdl->setMetrics(game->screenWidth, game->screenHeight);
+
+    if (!sdl->initWindow(title, "icon.bmp", game->windowed, (bool)game->sys->renderIdx))
+    {
+        game->works = false;
+    }
+
+    game->vk = sdl->getVkVideo();
+
+    gamepad = nullptr;
+    SDL_InitSubSystem(SDL_INIT_JOYSTICK);
+
+    if(SDL_NumJoysticks() > 0)
+    {
+        if (SDL_IsGameController(0))
+        {
+            SDL_GameControllerType controllerType = SDL_CONTROLLER_TYPE_UNKNOWN;
+            controllerType = SDL_GameControllerTypeForIndex(0);
+            gamepad = SDL_GameControllerOpen(0);
+            printf("game controller type: %s\n", GamePadTypes[controllerType]);
+        }
+    }
+
+    game->init(game->sys->renderIdx);
+
+    if (game->sys->renderIdx == 0)
+    {
+        glEnable (GL_BLEND);
+        glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+
+    game->timeTicks = SDL_GetTicks();
+}
+
+
+void disarray::runGamePC(SDLVideo* sdl)
 {
     while (game->works)
     {
@@ -41,9 +108,16 @@ void disarray::whileLoopPC(SDLVideo* sdl)
             game->tick = SDL_GetTicks() + 1000 / 61;
         }
 
-        otherWhileLoopActivities();
+        processEventsPc();
         SDL_Delay(0.6);
-    }
+        otherWhileLoopActivities();
+    } // while
+
+    printf("QUITING!\n");
+
+    game->destroy();
+
+    sdl->quit(game->sys->renderIdx);
 
 }
 
@@ -165,4 +239,75 @@ void disarray::handleInputPC()
     }
 
 }
+
+
+void disarray::processEventsPc()
+{
+    SDL_Event event;
+    float scaleX = 1.f;
+    float scaleY = 1.f;
+
+    while( SDL_PollEvent( &event ) ) 
+    {
+
+        switch( event.type ) 
+        {
+
+        case SDL_TEXTINPUT:
+        {
+            strcpy(game->editText, event.text.text);
+        } break;
+
+        case SDL_KEYUP:
+        {
+            game->globalKEY = 0;
+            game->globalKeyUp = (char)event.key.keysym.scancode;
+        } break;
+
+        case SDL_KEYDOWN:{
+
+            game->globalKEY = (char)event.key.keysym.scancode;
+            switch( event.key.keysym.sym ) 
+            {
+                default:{} break;
+                case SDLK_F1: {++game->debugMode; if (game->debugMode > 1) game->debugMode = 0;} 
+            }
+        } break;
+        case SDL_MOUSEBUTTONUP:{
+            Vector3D pos(event.button.x * scaleX, event.button.y * scaleY, 0);
+            game->touches->up.push_back(pos);
+            game->touches->allfingersup = true;
+        } break;
+        case SDL_MOUSEBUTTONDOWN:{
+            Vector3D pos(event.button.x * scaleX, event.button.y * scaleY, 0);
+            game->touches->down.push_back(pos);
+            game->touches->allfingersup = false;
+
+        } break;
+
+        case SDL_MOUSEWHEEL:
+        {
+            game->keys[7] = 1;
+        } break;
+
+        case SDL_MOUSEMOTION:{
+            if(SDL_GetMouseState(0, 0)&SDL_BUTTON_LMASK){
+                Vector3D pos(event.button.x * scaleX, event.button.y * scaleY, 0);
+                game->touches->move.push_back(pos);
+                game->touches->allfingersup = false;
+            }
+        }break;
+
+
+        case SDL_QUIT:
+        {
+            game->works = false;
+        }break;
+
+        }
+
+    }
+
+}
+
 #endif

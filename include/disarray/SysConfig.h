@@ -25,15 +25,8 @@
             useWindowed = false;
             screenScaleX = 3.f;
             screenScaleY = 3.f;
-#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
             ScreenWidth = 640;
             ScreenHeight = 360;
-#else
-            ScreenWidth = 640;
-            ScreenHeight = 360;
-
-#endif
-
         }
 
 #ifndef __ANDROID__

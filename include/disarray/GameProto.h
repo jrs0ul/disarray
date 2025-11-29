@@ -24,6 +24,7 @@ public:
     AAssetManager*  androidAssetManager;
 #endif
 
+    char            editText[255];
     float           orthoMatrix[16];
     char            documentPath[MAX_DOCUMENT_PATH];
     uint8_t         oldKeys[GAME_KEY_COUNT];  //  old game keys
@@ -48,9 +49,12 @@ public:
     float           relativeMouseY;
     float           mouseX;
     float           mouseY;
+    int             debugMode;
 
     unsigned        screenWidth;
     unsigned        screenHeight;
+    unsigned char   globalKEY;
+    unsigned char   globalKeyUp;
     bool            windowed;
     bool            works;
     bool            doRumble;
@@ -61,7 +65,7 @@ public:
     ~GameProto();
 
     virtual void init(bool useVulkan) = 0;
-    virtual void loadConfig(const char* path);
+    virtual void loadConfig(const char* path, uint32_t initialWidth, uint32_t initialHeight, int initialRenderIdx);
     virtual void render() = 0;
     virtual void logic() = 0;
     virtual void destroy();

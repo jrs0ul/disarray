@@ -15,6 +15,14 @@
 
 #endif
 
+DUniform::DUniform(const char* newName, void* newData, uint8_t dataSize)
+{
+    strcpy(name, newName);
+    memcpy(data, newData, dataSize);
+    size = dataSize;
+}
+
+
 void ShaderProgram::create(bool useVulkan)
 {
 

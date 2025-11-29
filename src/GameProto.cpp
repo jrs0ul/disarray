@@ -51,8 +51,12 @@ void GameProto::destroy()
 
 }
 
-void GameProto::loadConfig(const char* path)
+void GameProto::loadConfig(const char* path, uint32_t initialWidth, uint32_t initialHeight, int initialRenderIdx)
 {
+    sys->ScreenWidth = initialWidth;
+    sys->ScreenHeight = initialHeight;
+    sys->renderIdx = initialRenderIdx;
+    sys->load(path);
 }
 
 int GameProto::fps (void)
