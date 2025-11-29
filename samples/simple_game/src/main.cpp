@@ -32,8 +32,5 @@ int main( int   argc, char *argv[] )
     ds.setupPC(&SDL, 640, 360, true, finalBuf, "ATARI 2600 game proto", false);
     ds.runGamePC(&SDL);
 
-    game.destroy();
-    SDL.quit(false);
-
     return 0;
 }

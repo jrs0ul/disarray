@@ -1,9 +1,15 @@
 #include "Game.h"
-#include <vector>
-#include <algorithm>
 #include <disarray/ShaderLoader.h>
 #include <disarray/SysConfig.h>
-//#include <cwchar>
+
+enum TextureNames
+{
+    PIC_LETTERS = 0,
+    PIC_LOGO,   
+    PIC_TILES,
+    PIC_BACKG,
+    PIC_GOPNIK 
+};
 
 
 const int boardX = 16;
@@ -346,19 +352,19 @@ void Game::onChainFinish()
 
 void Game::DrawTitle()
 {
-    pics->draw(4, 240, 425, 0, true, 0.8f);
+    pics->draw(PIC_LOGO, 240, 425, 0, true, 0.8f);
 }
 
 void Game::DrawGame()
 {
 
-    pics->draw(6, 0, 0, 0);
+    pics->draw(PIC_BACKG, 0, 0, 0);
 
     for (int i = 0; i < 6; ++i)
     {
         for (int j = 0; j < 7; ++j)
         {
-            pics->draw(5, boardX + tileSize * j, boardY + tileSize * i, 0);
+            pics->draw(PIC_TILES, boardX + tileSize * j, boardY + tileSize * i, 0);
 
         }
     }
@@ -373,7 +379,7 @@ void Game::DrawGame()
             
             if (board[i][j])
             {
-                pics->draw(5, boardX + tileSize * j, boardY + tileSize * i, board[i][j]);
+                pics->draw(PIC_TILES, boardX + tileSize * j, boardY + tileSize * i, board[i][j]);
             }
 
         }
@@ -386,8 +392,8 @@ void Game::DrawGame()
     shaders->shaders[2].use();
     glEnable(GL_DEPTH_TEST);
 
-    player.draw(false, pics->getGLName(7), model, shaders->shaders[2], modelMatrixId, orthoMatrix);
-    enemy.draw(true, pics->getGLName(7), model, shaders->shaders[2], modelMatrixId, orthoMatrix);
+    player.draw(false, pics->getGLName(PIC_GOPNIK), model, shaders->shaders[2], modelMatrixId, orthoMatrix);
+    enemy.draw(true, pics->getGLName(PIC_GOPNIK), model, shaders->shaders[2], modelMatrixId, orthoMatrix);
 
     glDisable(GL_DEPTH_TEST);
     

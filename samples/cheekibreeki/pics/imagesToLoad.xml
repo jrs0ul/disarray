@@ -1,9 +1,6 @@
 <xml>
 <Images>
     <Img src="pics/chars.tga" width="16" height="16" filter="0" /> 
-    <Img src="pics/chars.tga" width="16" height="16" filter="0" />
-    <Img src="pics/chars.tga" width="64" height="64" filter="1" />
-    <Img src="pics/chars.tga" width="64" height="64" filter="1" />
     <Img src="pics/logo.tga" width="512" height="596" filter="1" />
     <Img src="pics/tiles.tga" width="64" height="64" filter="1" />
     <Img src="pics/bg.tga" width="480" height="425" filter="1" />

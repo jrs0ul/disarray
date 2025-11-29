@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 
-project (simple LANGUAGES CXX)
+project (cheekibreeki LANGUAGES CXX)
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR})
 
@@ -12,13 +12,13 @@ set_target_properties(disarray PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/../../include/"
 )
 
-add_executable(chikibriki
+add_executable(cheekibreeki
                 src/Gopnik.cpp
                 src/mainer.cpp
                 src/Game.cpp
                )
 
-target_link_libraries(chikibriki
+target_link_libraries(cheekibreeki
                       disarray
                       SDL2
                       GL
